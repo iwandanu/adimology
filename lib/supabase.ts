@@ -138,6 +138,11 @@ export async function getWatchlistAnalysisHistory(filters?: {
     query = query
       .order('from_date', { ascending: sortOrder === 'asc' })
       .order('emiten', { ascending: sortOrder === 'asc' });
+  } else if (sortBy === 'emiten') {
+    // When sorting by emiten, secondary sort by date ascending
+    query = query
+      .order('emiten', { ascending: sortOrder === 'asc' })
+      .order('from_date', { ascending: true });
   } else {
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });
   }
