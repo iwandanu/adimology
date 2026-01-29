@@ -1,7 +1,7 @@
 # Adimology - Kalkulator Target Saham
 
 > [!CAUTION]
-> **PERINGATAN KEAMANAN**: Jangan pernah membagikan URL aplikasi Netlify Anda secara publik. Aplikasi ini melakukan sinkronisasi token sesi Stockbit Anda ke database. Jika URL bocor, orang lain dapat menyalahgunakan akses tersebut. Gunakan aplikasi ini hanya untuk penggunaan pribadi.
+> **PERINGATAN KEAMANAN**: Jangan pernah membagikan URL aplikasi Netlify Anda secara publik. Aplikasi ini melakukan sinkronisasi token sesi Stockbit Anda ke database. Jika URL bocor, orang lain dapat menyalahgunakan akses tersebut. Meski begitu, aplikasi ini tetap tidak bisa melakukan transaksi karena tidak bisa mengakses fitur PIN. Gunakan aplikasi ini hanya untuk penggunaan pribadi.
 
 Adimology adalah aplikasi web untuk menganalisis target harga saham berdasarkan data transaksi broker (bandarmologi) dari Stockbit. Aplikasi ini juga melacak performa analisis secara otomatis dan menyediakan data akumulasi broker.
 
@@ -231,12 +231,19 @@ Aplikasi akan berjalan di [http://localhost:3000](http://localhost:3000)
 ## Fitur Utama
 
 - **Analisis Target**: Menghitung target harga "Realistis (R1)" dan "Maksimal" berdasarkan rata-rata harga pembelian broker (Avg Bandar).
+- **Data Terintegrasi Stockbit**: Mengambil data transaksi broker summary.
 - **History & Watchlist**: Menyimpan riwayat analisis untuk dipantau di kemudian hari.
+- **Sync Watchlist & Hapus Otomatis**: Menampilkan watchlist langsung dari akun Stockbit termasuk fungsi delete.
 - **Tracking Real Harga (H+1)**: Secara otomatis memperbarui harga riil di hari bursa berikutnya untuk memverifikasi apakah target analisis tercapai.
-- **Data Terintegrasi Stockbit**: Mengambil data transaksi broker real-time untuk akurasi tinggi.
+- **Sistem Background Job & Retry**: Pemantauan status background job (analisis otomatis) dengan tombol **Retry** untuk menjalankan ulang job yang gagal.
+- **Advanced Charts (TradingView & Chartbit)**:
+  - Integrasi grafis dengan **Chartbit**.
+  - Integrasi **TradingView Advanced Chart** dengan indikator RSI dan Oversold untuk konfirmasi sinyal Buy/Sell. Register ke https://www.tradingview.com/ untuk bisa melihat grafiknya.
+- **Filter Flag & Watchlist**: Filter cepat berdasarkan flag emiten (Big Spec, Trend, dll) dan grup watchlist untuk mempermudah pemantauan portfolio.
+- **Frozen Glass Design System**: Antarmuka modern dengan gaya *Glassmorphism/Frozen Glass Material*.
+- **Multi-Theme Support**: Dukungan penuh mode **Light** dan **Dark** yang sinkron dengan sistem atau preferensi pengguna.
 - **Ringkasan Broker (Top 1, 3, 5)**: Visualisasi kekuatan akumulasi vs distribusi broker.
 - **Export to PDF**: Unduh laporan riwayat analisis dalam format PDF yang rapi.
-- **Automatic Background Analysis**: Fitur otomatisasi yang melakukan analisis watchlist secara terjadwal setiap hari.
 - **AI Story Analysis**: Analisis berita dan sentimen pasar menggunakan AI (Gemini) untuk merangkum story, SWOT, dan katalis emiten secara instan.
 - **Multi-Version Analysis Tracking**: Menyimpan dan menampilkan riwayat analisis AI sebelumnya sehingga Anda bisa melacak perubahan narasi pasar dari waktu ke waktu.
 

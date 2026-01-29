@@ -1704,6 +1704,34 @@ h3 {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.tradingview-btn {
+  background: linear-gradient(135deg, #2962ff 0%, #1e4bd8 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(41, 98, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tradingview-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(41, 98, 255, 0.4);
+  filter: brightness(1.1);
+}
+
+.tradingview-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+
 .chartbit-btn:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
