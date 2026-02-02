@@ -102,8 +102,8 @@ Ikuti langkah-langkah berikut secara berurutan:
 3. Edit `manifest.json` - ganti `YOUR_APP_DOMAIN` dengan URL Netlify Anda:
    ```json
    "host_permissions": [
-    "https://*.stockbit.com/*",
-    "https://your-app.netlify.app/*"
+      "https://*.stockbit.com/*",
+      "https://your-app.netlify.app/*"
    ]
    ```
 
