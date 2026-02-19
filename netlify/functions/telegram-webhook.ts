@@ -1,4 +1,3 @@
-import { createAgentStory, getAgentStoryByEmiten } from '../../lib/supabase';
 import type { AgentStoryResult } from '../../lib/types';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -193,8 +192,13 @@ export default async (req: Request) => {
   }
 
   try {
-    const body = await req.json();
-    const message = body.message;
+    let body: { message?: { chat?: { id: number }; text?: string } };
+    try {
+      body = (await req.json()) as typeof body;
+    } catch {
+      return new Response('OK', { status: 200 });
+    }
+    const message = body?.message;
     if (!message || !message.chat) {
       return new Response('OK', { status: 200 });
     }
@@ -306,6 +310,7 @@ export default async (req: Request) => {
       }
 
       try {
+        const { createAgentStory } = await import('../../lib/supabase');
         const story = await createAgentStory(emiten);
         const baseUrl =
           process.env.URL && !process.env.URL.includes('localhost')
@@ -349,6 +354,7 @@ export default async (req: Request) => {
       }
 
       try {
+        const { getAgentStoryByEmiten } = await import('../../lib/supabase');
         const story = await getAgentStoryByEmiten(emiten);
         if (!story) {
           await sendTelegramMessage(
@@ -393,12 +399,7 @@ export default async (req: Request) => {
     );
     return new Response('OK', { status: 200 });
   } catch (error) {
-    console.error('[Telegram] Webhook error:', error);
-    return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : 'Webhook failed',
-      }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    console.error('[Telegram] Webhook error:', error instanceof Error ? error.stack : error);
+    return new Response('OK', { status: 200 });
   }
 };
