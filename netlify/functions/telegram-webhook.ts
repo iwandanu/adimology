@@ -150,15 +150,21 @@ function formatAdimologyForTelegram(data: {
   const t2 = calculated.targetMax ?? calculated.target_max;
   const rra = calculated.rataRataBidOfer ?? calculated.rata_rata_bid_ofer;
 
+  const spacer = ''; // blank line between segments
+  const targetLines = [
+    t1 != null ? `Target R1: Rp ${fmt(t1)} (${gain(t1)})` : null,
+    t2 != null ? `Target Max: Rp ${fmt(t2)} (${gain(t2)})` : null,
+  ].filter((x): x is string => !!x);
+
   const lines: string[] = [
     `<b>📈 ADIMOLOGY — ${input.emiten}</b>`,
     `${input.fromDate} s/d ${input.toDate}`,
-    '',
+    spacer,
     '<b>TOP BROKER</b>',
     `Broker: ${stockbitData.bandar ?? '-'}`,
     `∑ Brg: ${fmt(stockbitData.barangBandar)} lot`,
     `Avg Harga: Rp ${fmt(stockbitData.rataRataBandar)}`,
-    '',
+    spacer,
     '<b>MARKET DATA</b>',
     `Harga: Rp ${fmt(marketData.harga)}`,
     `Offer Max: Rp ${fmt(marketData.offerTeratas)}`,
@@ -166,23 +172,21 @@ function formatAdimologyForTelegram(data: {
     `Fraksi: ${fmt(marketData.fraksi)}`,
     `∑ Bid: ${fmt((marketData.totalBid ?? 0) / 100)}`,
     `∑ Offer: ${fmt((marketData.totalOffer ?? 0) / 100)}`,
-    '',
+    spacer,
     '<b>CALCULATIONS</b>',
     `∑ Papan: ${fmt(calculated.totalPapan)}`,
     `Avg Bid-Offer: ${fmt(rra)}`,
     `a (5% avg bandar): ${fmt(calculated.a)}`,
     `p (Brg/Avg Bid-Offer): ${fmt(calculated.p)}`,
-    '',
-    t1 != null ? `Target R1: Rp ${fmt(t1)} (${gain(t1)})` : '',
-    t2 != null ? `Target Max: Rp ${fmt(t2)} (${gain(t2)})` : '',
+    spacer,
+    ...targetLines,
   ];
 
   if (data.isFromHistory && data.historyDate) {
-    lines.push('');
-    lines.push(`<i>⚠ Data history: ${data.historyDate}</i>`);
+    lines.push(spacer, `<i>⚠ Data history: ${data.historyDate}</i>`);
   }
 
-  return lines.filter(Boolean).join('\n');
+  return lines.join('\n');
 }
 
 export default async (req: Request) => {
