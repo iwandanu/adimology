@@ -1,5 +1,3 @@
-import type { AgentStoryResult } from '../../lib/types';
-
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ALLOWED_CHAT_IDS = process.env.TELEGRAM_ALLOWED_CHAT_IDS
   ? process.env.TELEGRAM_ALLOWED_CHAT_IDS.split(',').map((id) => id.trim())
@@ -35,7 +33,15 @@ async function sendTelegramMessage(chatId: number, text: string): Promise<void> 
   }
 }
 
-function formatStoryForTelegram(story: AgentStoryResult): string {
+function formatStoryForTelegram(story: {
+  emiten: string;
+  kesimpulan?: string;
+  matriks_story?: { kategori_story: string; deskripsi_katalis: string; potensi_dampak_harga: string }[];
+  swot_analysis?: { strengths?: string[]; weaknesses?: string[]; opportunities?: string[]; threats?: string[] };
+  strategi_trading?: { tipe_saham?: string; target_entry?: string; exit_strategy?: { take_profit?: string; stop_loss?: string } };
+  keystat_signal?: string;
+  checklist_katalis?: { item: string; dampak_instan: string }[];
+}): string {
   const lines: string[] = [];
   lines.push(`<b>📊 AI Story Analysis — ${story.emiten}</b>`);
   lines.push('');
@@ -180,15 +186,25 @@ function formatAdimologyForTelegram(data: {
 }
 
 export default async (req: Request) => {
+  // GET: debug endpoint - verify function runs and env vars
+  if (req.method === 'GET') {
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        hasToken: !!BOT_TOKEN,
+        hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
 
   if (!BOT_TOKEN) {
-    return new Response(
-      JSON.stringify({ error: 'TELEGRAM_BOT_TOKEN not configured' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    console.error('[Telegram] TELEGRAM_BOT_TOKEN not configured in Netlify env vars');
+    return new Response('OK', { status: 200 });
   }
 
   try {
@@ -380,7 +396,7 @@ export default async (req: Request) => {
           return new Response('OK', { status: 200 });
         }
 
-        const formatted = formatStoryForTelegram(story as AgentStoryResult);
+        const formatted = formatStoryForTelegram(story);
         await sendTelegramMessage(chatId, formatted);
       } catch (err) {
         console.error('[Telegram] getAgentStory error:', err);
