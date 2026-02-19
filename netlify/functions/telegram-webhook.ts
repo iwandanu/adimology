@@ -327,7 +327,7 @@ export default async (req: Request) => {
           `✅ Analisis AI untuk <b>${emiten}</b> dimulai.\n\n` +
             'Proses memakan waktu 1–2 menit. Ketik:\n' +
             `<code>/result ${emiten}</code>\n` +
-            'untuk melihat hasilnya.`
+            'untuk melihat hasilnya.'
         );
       } catch (err) {
         console.error('[Telegram] createAgentStory error:', err);
