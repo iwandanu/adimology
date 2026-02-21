@@ -120,7 +120,7 @@ export async function getCorporateActions(emiten: string): Promise<CorporateActi
       const sp = arr
         .map((v) => {
           const d = v.date instanceof Date ? v.date : new Date(typeof v.date === 'number' && v.date < 1e10 ? v.date * 1000 : v.date);
-          const ratio = v.splitRatio ?? `${v.numerator}:${v.denominator}`;
+          const ratio = ('splitRatio' in v && v.splitRatio) || `${v.numerator}:${v.denominator}`;
           return { date: d.toISOString().split('T')[0], ratio, type: 'split' as const };
         })
         .sort((a, b) => b.date.localeCompare(a.date))
