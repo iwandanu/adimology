@@ -9,6 +9,9 @@ import AgentStoryCard from './AgentStoryCard';
 import PriceGraph from './PriceGraph';
 import BrokerFlowCard from './BrokerFlowCard';
 import EmitenHistoryCard from './EmitenHistoryCard';
+import TechnicalAnalysisCard from './TechnicalAnalysisCard';
+import TradingPlanCard from './TradingPlanCard';
+import BandarmologyCard from './BandarmologyCard';
 
 import html2canvas from 'html2canvas';
 import type { StockInput, StockAnalysisResult, KeyStatsData, AgentStoryResult } from '@/lib/types';
@@ -67,6 +70,14 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   const [copiedImage, setCopiedImage] = useState(false);
   const [keyStats, setKeyStats] = useState<KeyStatsData | null>(null);
 
+  // Technical, Trading Plan, Bandarmology
+  const [technicalData, setTechnicalData] = useState<Record<string, unknown> | null>(null);
+  const [tradingPlanData, setTradingPlanData] = useState<Record<string, unknown> | null>(null);
+  const [bandarmologyData, setBandarmologyData] = useState<Record<string, unknown> | null>(null);
+  const [technicalLoading, setTechnicalLoading] = useState(false);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [bandarLoading, setBandarLoading] = useState(false);
+
   // Agent Story state
   const [agentStories, setAgentStories] = useState<AgentStoryResult[]>([]);
   const [storyStatus, setStoryStatus] = useState<'idle' | 'pending' | 'processing' | 'completed' | 'error'>('idle');
@@ -104,6 +115,9 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     setAgentStories([]);
     setStoryStatus('idle');
     setKeyStats(null);
+    setTechnicalData(null);
+    setTradingPlanData(null);
+    setBandarmologyData(null);
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
@@ -135,6 +149,48 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         }
       } catch (keyStatsErr) {
         console.error('Failed to fetch key stats:', keyStatsErr);
+      }
+
+      // Fetch Technical Analysis, Trading Plan, Bandarmology in parallel
+      const emitenUpper = data.emiten.toUpperCase();
+      setTechnicalLoading(true);
+      setPlanLoading(true);
+      setBandarLoading(true);
+
+      Promise.all([
+        fetch(`/api/technical?emiten=${emitenUpper}`).then((r) => r.json()),
+        fetch(`/api/bandarmology?emiten=${emitenUpper}&days=10`).then((r) => r.json()),
+      ])
+        .then(([techJson, bandarJson]) => {
+          if (techJson.success) setTechnicalData(techJson.data);
+          if (bandarJson.success) setBandarmologyData(bandarJson.data);
+        })
+        .catch(console.error)
+        .finally(() => {
+          setTechnicalLoading(false);
+          setBandarLoading(false);
+        });
+
+      if (json.data?.marketData?.harga && json.data?.calculated) {
+        fetch('/api/trading-plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emiten: emitenUpper,
+            currentPrice: json.data.marketData.harga,
+            targetRealistis: json.data.calculated.targetRealistis1,
+            targetMax: json.data.calculated.targetMax,
+            accountSize: 100_000_000,
+          }),
+        })
+          .then((r) => r.json())
+          .then((planJson) => {
+            if (planJson.success) setTradingPlanData(planJson.data);
+          })
+          .catch(console.error)
+          .finally(() => setPlanLoading(false));
+      } else {
+        setPlanLoading(false);
       }
 
       // Fetch existing Agent Story if available
@@ -412,6 +468,48 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
               <KeyStatsCard
                 emiten={result.input.emiten}
                 keyStats={keyStats}
+              />
+            )}
+
+            {/* Technical Analysis */}
+            {(technicalData || technicalLoading) && (
+              <TechnicalAnalysisCard
+                emiten={result.input.emiten}
+                data={(technicalData as any) || {}}
+                loading={technicalLoading}
+              />
+            )}
+
+            {/* Trading Plan - show when we have data or are loading */}
+            {(tradingPlanData || planLoading) && (
+              <TradingPlanCard
+                data={(tradingPlanData as any) || {
+                  emiten: result.input.emiten,
+                  entry: { price: result.marketData?.harga ?? 0, type: 'market', trend: '-', signal: '-' },
+                  takeProfit: [],
+                  stopLoss: { price: 0, percentLoss: 0, method: '-' },
+                  riskReward: { riskPerShare: 0, rewardTP1: 0, rewardTP2: 0, rrToTP1: 0, rrToTP2: 0, quality: 'fair' },
+                  executionStrategy: [],
+                }}
+                loading={planLoading}
+              />
+            )}
+
+            {/* Bandarmology - show when we have data or are loading */}
+            {(bandarmologyData || bandarLoading) && (
+              <BandarmologyCard
+                data={(bandarmologyData as any) || {
+                  emiten: result.input.emiten,
+                  period: { from: '', to: '', days: 0 },
+                  flowMomentum: 0,
+                  flowMomentumSignal: 'neutral',
+                  phase: 'neutral',
+                  brokerComposition: {},
+                  patternAlerts: [],
+                  recommendation: '',
+                  dailyFlows: [],
+                }}
+                loading={bandarLoading}
               />
             )}
 

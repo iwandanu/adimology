@@ -79,6 +79,20 @@ const Navbar = () => {
             >
               Summary
             </Link>
+            <Link 
+              href="/screen" 
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/screen' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/screen' ? 600 : 400,
+                fontSize: '0.9rem',
+                borderBottom: pathname === '/screen' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                paddingBottom: '2px',
+                transition: 'all 0.2s'
+              }}
+            >
+              Screener
+            </Link>
             <a 
               href="https://github.com/bhaktiutama/adimology" 
               target="_blank" 
