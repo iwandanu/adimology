@@ -84,7 +84,7 @@ export default async (req: Request) => {
     };
 
     const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    const model = 'gemini-3-flash-preview';
+    const model = 'gemini-3.1-pro-preview';
     const systemPrompt = "Kamu adalah seorang analis saham profesional Indonesia yang ahli dalam menganalisa story dan katalis pergerakan harga saham.";
     
     let keyStatsContext = '';
