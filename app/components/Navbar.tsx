@@ -6,7 +6,10 @@ import { usePathname } from 'next/navigation';
 import TokenStatusIndicator from './TokenStatusIndicator';
 import JobStatusIndicator from './JobStatusIndicator';
 import ThemeToggle from './ThemeToggle';
-import { Github, Menu, X } from 'lucide-react';
+import { Github, Menu, X, GitFork } from 'lucide-react';
+
+const UPSTREAM_REPO = 'https://github.com/bhaktiutama/adimology';
+const FORK_REPO = 'https://github.com/iwandanu/adimology';
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -93,22 +96,44 @@ const Navbar = () => {
             >
               Screener
             </Link>
-            <a 
-              href="https://github.com/bhaktiutama/adimology" 
-              target="_blank" 
-              rel="noopener noreferrer"
+            <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                color: 'var(--text-secondary)',
-                transition: 'color 0.2s',
-                paddingBottom: '2px',
+                gap: '0.35rem',
               }}
-              className="github-link"
-              title="View on GitHub"
+              title="Upstream → Fork"
             >
-              <Github size={20} />
-            </a>
+              <a
+                href={UPSTREAM_REPO}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: 'var(--text-secondary)',
+                  transition: 'color 0.2s',
+                }}
+                title="Upstream: bhaktiutama/adimology"
+              >
+                <Github size={20} />
+              </a>
+              <GitFork size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+              <a
+                href={FORK_REPO}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: 'var(--text-secondary)',
+                  transition: 'color 0.2s',
+                }}
+                title="Fork: iwandanu/adimology"
+              >
+                <Github size={20} />
+              </a>
+            </div>
           </div>
           <div className="nav-status-group">
             <JobStatusIndicator />
@@ -167,21 +192,25 @@ const Navbar = () => {
             >
               Summary
             </Link>
-            <a 
-              href="https://github.com/bhaktiutama/adimology" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                color: 'var(--text-secondary)',
-                fontSize: '1rem',
-                padding: '0.5rem 0',
-              }}
-            >
-              <Github size={20} /> View on GitHub
-            </a>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0' }}>
+              <a
+                href={UPSTREAM_REPO}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '1rem' }}
+              >
+                <Github size={20} /> bhaktiutama/adimology
+              </a>
+              <GitFork size={16} style={{ color: 'var(--text-muted)' }} />
+              <a
+                href={FORK_REPO}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '1rem' }}
+              >
+                <Github size={20} /> iwandanu/adimology
+              </a>
+            </div>
           </div>
           <div className="nav-status-group">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
