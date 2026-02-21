@@ -11,7 +11,6 @@ import BrokerFlowCard from './BrokerFlowCard';
 import EmitenHistoryCard from './EmitenHistoryCard';
 import TechnicalAnalysisCard from './TechnicalAnalysisCard';
 import TradingPlanCard from './TradingPlanCard';
-import BandarmologyCard from './BandarmologyCard';
 
 import html2canvas from 'html2canvas';
 import type { StockInput, StockAnalysisResult, KeyStatsData, AgentStoryResult } from '@/lib/types';
@@ -70,13 +69,11 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   const [copiedImage, setCopiedImage] = useState(false);
   const [keyStats, setKeyStats] = useState<KeyStatsData | null>(null);
 
-  // Technical, Trading Plan, Bandarmology
+  // Technical, Trading Plan
   const [technicalData, setTechnicalData] = useState<Record<string, unknown> | null>(null);
   const [tradingPlanData, setTradingPlanData] = useState<Record<string, unknown> | null>(null);
-  const [bandarmologyData, setBandarmologyData] = useState<Record<string, unknown> | null>(null);
   const [technicalLoading, setTechnicalLoading] = useState(false);
   const [planLoading, setPlanLoading] = useState(false);
-  const [bandarLoading, setBandarLoading] = useState(false);
 
   // Agent Story state
   const [agentStories, setAgentStories] = useState<AgentStoryResult[]>([]);
@@ -117,7 +114,6 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     setKeyStats(null);
     setTechnicalData(null);
     setTradingPlanData(null);
-    setBandarmologyData(null);
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
@@ -151,25 +147,17 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         console.error('Failed to fetch key stats:', keyStatsErr);
       }
 
-      // Fetch Technical Analysis, Trading Plan, Bandarmology in parallel
+      // Fetch Technical Analysis
       const emitenUpper = data.emiten.toUpperCase();
       setTechnicalLoading(true);
-      setPlanLoading(true);
-      setBandarLoading(true);
 
-      Promise.all([
-        fetch(`/api/technical?emiten=${emitenUpper}`).then((r) => r.json()),
-        fetch(`/api/bandarmology?emiten=${emitenUpper}&days=10`).then((r) => r.json()),
-      ])
-        .then(([techJson, bandarJson]) => {
+      fetch(`/api/technical?emiten=${emitenUpper}`)
+        .then((r) => r.json())
+        .then((techJson) => {
           if (techJson.success) setTechnicalData(techJson.data);
-          if (bandarJson.success) setBandarmologyData(bandarJson.data);
         })
         .catch(console.error)
-        .finally(() => {
-          setTechnicalLoading(false);
-          setBandarLoading(false);
-        });
+        .finally(() => setTechnicalLoading(false));
 
       if (json.data?.marketData?.harga && json.data?.calculated) {
         fetch('/api/trading-plan', {
@@ -471,47 +459,38 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
               />
             )}
 
-            {/* Technical Analysis */}
-            {(technicalData || technicalLoading) && (
-              <TechnicalAnalysisCard
-                emiten={result.input.emiten}
-                data={(technicalData as any) || {}}
-                loading={technicalLoading}
-              />
-            )}
-
-            {/* Trading Plan - show when we have data or are loading */}
-            {(tradingPlanData || planLoading) && (
-              <TradingPlanCard
-                data={(tradingPlanData as any) || {
-                  emiten: result.input.emiten,
-                  entry: { price: result.marketData?.harga ?? 0, type: 'market', trend: '-', signal: '-' },
-                  takeProfit: [],
-                  stopLoss: { price: 0, percentLoss: 0, method: '-' },
-                  riskReward: { riskPerShare: 0, rewardTP1: 0, rewardTP2: 0, rrToTP1: 0, rrToTP2: 0, quality: 'fair' },
-                  executionStrategy: [],
-                }}
-                loading={planLoading}
-              />
-            )}
-
-            {/* Bandarmology - show when we have data or are loading */}
-            {(bandarmologyData || bandarLoading) && (
-              <BandarmologyCard
-                data={(bandarmologyData as any) || {
-                  emiten: result.input.emiten,
-                  period: { from: '', to: '', days: 0 },
-                  flowMomentum: 0,
-                  flowMomentumSignal: 'neutral',
-                  phase: 'neutral',
-                  brokerComposition: {},
-                  patternAlerts: [],
-                  recommendation: '',
-                  dailyFlows: [],
-                }}
-                loading={bandarLoading}
-              />
-            )}
+            {/* Technical Analysis (1/3) + Trading Plan (2/3) */}
+            <div style={{
+              gridColumn: '1 / -1',
+              display: 'flex',
+              gap: '1.5rem',
+              flexWrap: 'wrap',
+            }}>
+              {(technicalData || technicalLoading) && (
+                <div style={{ flex: '1 1 0', minWidth: '260px' }}>
+                  <TechnicalAnalysisCard
+                    emiten={result.input.emiten}
+                    data={(technicalData as any) || {}}
+                    loading={technicalLoading}
+                  />
+                </div>
+              )}
+              {(tradingPlanData || planLoading) && (
+                <div style={{ flex: '2 2 0', minWidth: '260px' }}>
+                  <TradingPlanCard
+                    data={(tradingPlanData as any) || {
+                      emiten: result.input.emiten,
+                      entry: { price: result.marketData?.harga ?? 0, type: 'market', trend: '-', signal: '-' },
+                      takeProfit: [],
+                      stopLoss: { price: 0, percentLoss: 0, method: '-' },
+                      riskReward: { riskPerShare: 0, rewardTP1: 0, rewardTP2: 0, rrToTP1: 0, rrToTP2: 0, quality: 'fair' },
+                      executionStrategy: [],
+                    }}
+                    loading={planLoading}
+                  />
+                </div>
+              )}
+            </div>
 
             {/* Emiten History Card - Full Width */}
             <div style={{
