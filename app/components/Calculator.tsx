@@ -147,8 +147,8 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
           if (latestStory.status === 'completed') {
             setStoryStatus('completed');
           } else if (latestStory.status === 'processing' || latestStory.status === 'pending') {
-            // Re-trigger polling if it was still in progress
-            handleAnalyzeStory(true);
+            // Resume polling only (GET) — do NOT create a new analysis via POST
+            resumeStoryPolling(data.emiten);
           }
         }
       } catch (storyErr) {
@@ -197,16 +197,43 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     return () => window.removeEventListener('token-refreshed', handleTokenRefresh);
   }, [error, selectedStock, result, fromDate, toDate]);
 
-  const handleAnalyzeStory = async (isResuming: boolean = false) => {
+  // Resume polling only (GET) for an in-progress story — does NOT create a new analysis
+  const resumeStoryPolling = (emiten: string) => {
+    setStoryStatus('processing');
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+
+    pollIntervalRef.current = setInterval(async () => {
+      try {
+        const statusRes = await fetch(`/api/analyze-story?emiten=${emiten}`);
+        const statusData = await statusRes.json();
+
+        if (statusData.success && statusData.data && Array.isArray(statusData.data)) {
+          const stories = statusData.data;
+          setAgentStories(stories);
+
+          const latest = stories[0];
+          if (latest.status === 'completed') {
+            setStoryStatus('completed');
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          } else if (latest.status === 'error') {
+            setStoryStatus('error');
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          } else if (latest.status === 'processing') {
+            setStoryStatus('processing');
+          }
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 5000);
+  };
+
+  // User-initiated: create a NEW analysis via POST + start polling
+  const handleAnalyzeStory = async () => {
     if (!result) return;
 
     const emiten = result.input.emiten.toUpperCase();
     setStoryStatus('pending');
-
-    if (!isResuming) {
-      // Don't clear existing stories when starting a new one, 
-      // just add a placeholder or let the API update handle it
-    }
 
     try {
       // Trigger background analysis
@@ -215,7 +242,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           emiten,
-          keyStats: keyStats // Pass the current keyStats data
+          keyStats: keyStats
         })
       });
 
@@ -223,36 +250,11 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
       if (!data.success) throw new Error(data.error);
 
       // Start polling for status
-      pollIntervalRef.current = setInterval(async () => {
-        try {
-          const statusRes = await fetch(`/api/analyze-story?emiten=${emiten}`);
-          const statusData = await statusRes.json();
-
-          if (statusData.success && statusData.data && Array.isArray(statusData.data)) {
-            const stories = statusData.data;
-            setAgentStories(stories);
-
-            const currentProcessing = stories[0]; // The one we just triggered is usually the first (desc order)
-            if (currentProcessing.status === 'completed') {
-              setStoryStatus('completed');
-              if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-            } else if (currentProcessing.status === 'error') {
-              setStoryStatus('error');
-              if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-            } else if (currentProcessing.status === 'processing') {
-              setStoryStatus('processing');
-            }
-          }
-        } catch (pollErr) {
-          console.error('Polling error:', pollErr);
-        }
-      }, 5000);
+      resumeStoryPolling(emiten);
 
     } catch (err) {
       console.error('Failed to start analysis:', err);
       setStoryStatus('error');
-      // We don't necessarily want to setAgentStories to an error object if we have other stories
-      // But for the sake of showing error in the card, we might need a workaround or specific error state in card
     }
   };
 

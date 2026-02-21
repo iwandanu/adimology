@@ -16,7 +16,9 @@ Adimology adalah aplikasi web untuk menganalisis target harga saham berdasarkan 
 ## Changelog
 
 ### v0.3.1 (2026-02-19)
-- **Telegram Bot**: Fitur bot Telegram untuk akses analisis lewat chat. Perintah `/adimology EMITEN` (kalkulator target), `/story EMITEN`, dan `/result EMITEN`.
+- **Responsive Navbar**: Implementasi menu hamburger untuk tampilan mobile, memindahkan indikator status dan toggle tema ke dalam sub-menu.
+- **Card UI Fixes**: Perbaikan alignment logo/judul pada navbar dan penanganan nama sektor yang sangat panjang (elipsis) pada card ringkasan.
+- **Scroll Optimization**: Menonaktifkan vertical scroll pada `CompactResultCard` dan `BrokerSummaryCard` untuk menjaga konsistensi visual saat pengambilan screenshot/copy image.
 
 ### v0.3.0 (2026-02-16)
 - **New Summary & Performance Dashboard**: Dasbor khusus untuk melacak performa emiten dalam jangka waktu tertentu (3, 5, 10, 20, 50 hari trading).
@@ -51,7 +53,6 @@ Adimology adalah aplikasi web untuk menganalisis target harga saham berdasarkan 
 - **Filter Flag & Watchlist**: Filter cepat berdasarkan flag emiten dan watchlist untuk mempermudah pemantauan portfolio.
 - **Ringkasan Broker (Top 1, 3, 5)**: Visualisasi kekuatan akumulasi vs distribusi broker.
 - **AI Story Analysis**: Analisis berita dan sentimen pasar menggunakan AI (Gemini) untuk merangkum story, SWOT, dan katalis emiten secara instan.
-- **Telegram Bot**: Alternatif akses via Telegram—minta analisis AI Story lewat chat saat tidak bisa mengakses web.
 - **Multi-Version Analysis**: Menyimpan dan menampilkan riwayat analisis AI sebelumnya sehingga Anda bisa melacak perubahan narasi pasar dari waktu ke waktu.
 - **Export to PDF**: Unduh laporan riwayat analisis dalam format PDF yang rapi.
 
@@ -83,7 +84,12 @@ Pilih salah satu opsi instalasi yang sesuai dengan kebutuhan Anda:
 
 # OPSI A: Deploy ke Cloud (Netlify + Supabase)
 
-Ikuti langkah-langkah berikut secara berurutan:
+Opsi ini direkomendasikan untuk penggunaan harian karena aplikasi akan berjalan secara otomatis di cloud dan dapat diakses dari mana saja.
+
+> [!TIP]
+> Panduan ini juga tersedia di **[Wiki GitHub](https://github.com/bhaktiutama/adimology/wiki/Deploy-Cloud)** untuk referensi yang lebih rapi.
+
+Ikuti langkah-langkah berikut secara berurutan untuk menjalankan Adimology di cloud menggunakan Netlify dan Supabase:
 
 ## A1. Setup Supabase
 
@@ -98,15 +104,15 @@ Ikuti langkah-langkah berikut secara berurutan:
 > Agar migrasi otomatis dapat berjalan, Anda perlu menyiapkan infrastruktur pelacakan migrasi secara manual:
 > 1. Buka **SQL Editor** di Dashboard Supabase.
 > 2. Klik **New query**.
-> 3. Salin isi file `supabase/000_init.sql` dari repository ini dan tempel di editor.
+> 3. Buka folder **supabase** di repository ini, pilih file **000_init.sql**, lalu salin (copy) seluruh teks yang ada di dalamnya dan tempel (paste) ke editor tadi.
 > 4. Klik **Run**.
 > 5. Setelah berhasil, migrasi database lainnya (`001_...` dst) akan dijalankan otomatis setiap kali build di Netlify.
 
 ## A2. Deploy ke Netlify
 
-1. Fork atau push repository ini ke GitHub Anda
+1. **Fork Repository**: Buka repository Adimology ini di GitHub, lalu klik tombol **Fork** di pojok kanan atas. Ini akan membuat salinan project ini di akun GitHub Anda sendiri agar Anda bisa menghubungkannya ke Netlify.
 2. Login ke [Netlify](https://www.netlify.com/) dan klik **Add new site > Import an existing project**
-3. Pilih repository Adimology dari GitHub
+3. Pilih repository Adimology dari GitHub anda
 4. Tambahkan **Environment Variables** di Netlify:
 
    | Variable | Nilai | Wajib |
@@ -115,21 +121,19 @@ Ikuti langkah-langkah berikut secara berurutan:
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key dari Supabase | ✅ |
    | `CRON_SECRET` | String acak untuk keamanan cron | ✅ |
    | `GEMINI_API_KEY` | API Key dari [Google AI Studio](https://aistudio.google.com/) | ✅ |
-   | `TELEGRAM_BOT_TOKEN` | Token dari [@BotFather](https://t.me/BotFather) (opsional, untuk bot Telegram) | ❌ |
 
 5. Klik **Deploy site** dan tunggu hingga selesai
 6. Catat URL Netlify Anda (contoh: `https://your-app.netlify.app`)
 
 ## A3. Setup Chrome Extension (untuk Cloud)
 
-1. Buka folder `stockbit-token-extension/` di repository
-2. Salin file konfigurasi:
-   ```bash
-   cp stockbit-token-extension/manifest.json.example stockbit-token-extension/manifest.json
-   cp stockbit-token-extension/background.js.example stockbit-token-extension/background.js
-   ```
+1. **Download File ke Komputer**: Jika Anda belum memiliki file ini di komputer, buka repository GitHub Anda, klik tombol **Code** (warna hijau), lalu pilih **Download ZIP**. Ekstrak (Extract) file tersebut ke folder pilihan Anda (misal di Desktop atau Documents).
+2. Buka folder `stockbit-token-extension/` yang ada di dalam folder hasil ekstrak tadi.
+3. Buat duplikat (Copy & Paste) untuk dua file berikut:
+   - Duplikat `manifest.json.example` lalu ubah namanya menjadi `manifest.json`
+   - Duplikat `background.js.example` lalu ubah namanya menjadi `background.js`
 
-3. Edit `manifest.json` - ganti `YOUR_APP_DOMAIN` dengan URL Netlify Anda:
+4. Edit `manifest.json` - ganti `YOUR_APP_DOMAIN` dengan URL Netlify Anda:
    ```json
    "host_permissions": [
       "https://*.stockbit.com/*",
@@ -137,40 +141,18 @@ Ikuti langkah-langkah berikut secara berurutan:
    ]
    ```
 
-4. Edit `background.js` - ganti `APP_API_URL` dengan URL Netlify Anda:
+5. Edit `background.js` - ganti `APP_API_URL` dengan URL Netlify Anda:
    ```javascript
    const APP_API_URL = "https://your-app.netlify.app/api/update-token";
    ```
 
-5. Install ekstensi di Chrome:
+6. Install ekstensi di Chrome:
    - Buka `chrome://extensions/`
    - Aktifkan **Developer mode** (pojok kanan atas)
    - Klik **Load unpacked**
    - Pilih folder `stockbit-token-extension`
 
-## A4. Setup Telegram Bot (Opsional)
-
-Agar bisa minta analisis lewat Telegram saat tidak mengakses web:
-
-1. Buat bot di Telegram: chat [@BotFather](https://t.me/BotFather), ketik `/newbot`, ikuti langkah.
-2. Tambahkan `TELEGRAM_BOT_TOKEN` di Netlify (Environment Variables).
-3. (Opsional) Restrict user: set `TELEGRAM_ALLOWED_CHAT_IDS` berisi ID chat yang diizinkan, dipisah koma. Dapatkan chat ID lewat [@userinfobot](https://t.me/userinfobot).
-4. Set webhook (ganti `YOUR_BOT_TOKEN` dan `your-app.netlify.app`):
-   ```bash
-   curl "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook?url=https://your-app.netlify.app/.netlify/functions/telegram-webhook"
-   ```
-5. Cek bot: kirim `/start` ke bot Anda.
-
-**Perintah bot:**
-- `/adimology EMITEN` — Analisis target Adimology (sama dengan Calculator di web). Contoh: `/adimology BBCA` atau `/adimology BBCA 2025-02-17 2025-02-19`
-- `/story EMITEN` — Minta analisis AI (contoh: `/story BBCA`)
-- `/result EMITEN` — Lihat hasil analisis AI terbaru (1–2 menit setelah `/story`)
-
-> **Catatan:** `/adimology` membutuhkan token Stockbit yang sudah tersinkron lewat Chrome extension.
-
-> **Untuk development lokal:** Webhook Telegram membutuhkan HTTPS. Gunakan [ngrok](https://ngrok.com/) untuk expose `netlify dev` atau `netlify functions:serve`, lalu set webhook ke URL ngrok.
-
-## A5. Verifikasi Instalasi
+## A4. Verifikasi Instalasi
 
 1. Buka [Stockbit](https://stockbit.com/) dan login
 2. Ekstensi akan otomatis menangkap dan mengirim token ke Supabase
@@ -334,8 +316,6 @@ Fitur analisis AI (Story Analysis) menggunakan Netlify Functions. Untuk menjalan
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | ✅ | Anon key Supabase |
 | `CRON_SECRET` | ✅ | ❌ | Secret untuk scheduled functions |
 | `GEMINI_API_KEY` | ✅ | ✅ | API Key Google AI Studio |
-| `TELEGRAM_BOT_TOKEN` | ⚠️ | ⚠️ | Token bot dari BotFather (untuk Telegram Bot) |
-| `TELEGRAM_ALLOWED_CHAT_IDS` | ⚠️ | ⚠️ | Chat ID yang diizinkan, dipisah koma (opsional) |
 | `STOCKBIT_JWT_TOKEN` | ❌ | ⚠️ | Fallback token manual |
 
 ---

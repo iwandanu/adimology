@@ -57,10 +57,17 @@ export default function BrokerSummaryCard({ emiten, dateRange, brokerSummary, se
     <div className="broker-summary-card">
       {/* Header */}
       <div className="compact-header">
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div className="compact-ticker">+ {emiten.toUpperCase()}</div>
           {sector && (
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+            <div style={{ 
+              fontSize: '0.7rem', 
+              color: 'var(--text-muted)', 
+              marginTop: '2px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
               {sector}
             </div>
           )}

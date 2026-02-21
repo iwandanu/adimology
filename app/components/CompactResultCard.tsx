@@ -28,15 +28,22 @@ export default function CompactResultCard({
 
   return (
     <div className="compact-card" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
-      {/* Scrollable Content Wrapper */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', scrollbarWidth: 'none' }} className="hide-scrollbar">
+      {/* Content Wrapper */}
+      <div style={{ flex: 1, overflow: 'hidden', padding: '1rem' }}>
         {/* Header */}
         <div className="compact-header">
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <div>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div className="compact-ticker">+ {input.emiten.toUpperCase()}</div>
               {result.sector && (
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                <div style={{ 
+                  fontSize: '0.7rem', 
+                  color: 'var(--text-muted)', 
+                  marginTop: '2px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}>
                   {result.sector}
                 </div>
               )}

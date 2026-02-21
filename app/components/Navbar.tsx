@@ -1,18 +1,22 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import TokenStatusIndicator from './TokenStatusIndicator';
 import JobStatusIndicator from './JobStatusIndicator';
 import ThemeToggle from './ThemeToggle';
-import { Github } from 'lucide-react';
+import { Github, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const pathname = usePathname();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
     <nav className="navbar">
-      <div className="navbar-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="navbar-container">
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div className="navbar-logo-icon" style={{ background: 'transparent', display: 'flex', alignItems: 'center' }}>
             <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -25,13 +29,14 @@ const Navbar = () => {
             </svg>
           </div>
           <div className="navbar-content">
-            <h1 className="navbar-title" style={{ fontSize: '1.5rem', marginBottom: '0' }}>Adimology Calculator</h1>
-            <p className="navbar-subtitle" style={{ fontSize: '0.75rem' }}>Analyze stock targets based on broker summary</p>
+            <h1 className="navbar-title">Adimology Calculator</h1>
+            <p className="navbar-subtitle">Analyze stock targets based on broker summary</p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div className="nav-links" style={{ display: 'flex', gap: '1.5rem' }}>
+        {/* Desktop View */}
+        <div className="nav-desktop-actions">
+          <div className="nav-links">
             <Link 
               href="/" 
               style={{
@@ -83,7 +88,7 @@ const Navbar = () => {
                 alignItems: 'center',
                 color: 'var(--text-secondary)',
                 transition: 'color 0.2s',
-                paddingBottom: '2px', // Consistency with nav-links
+                paddingBottom: '2px',
               }}
               className="github-link"
               title="View on GitHub"
@@ -91,10 +96,92 @@ const Navbar = () => {
               <Github size={20} />
             </a>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <div className="nav-status-group">
             <JobStatusIndicator />
             <TokenStatusIndicator />
             <ThemeToggle />
+          </div>
+        </div>
+
+        {/* Mobile Toggle Button */}
+        <button className="nav-mobile-toggle" onClick={toggleMenu} aria-label="Toggle menu">
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+
+        {/* Mobile Menu */}
+        <div className={`nav-mobile-menu ${isMenuOpen ? 'open' : ''}`}>
+          <div className="nav-links">
+            <Link 
+              href="/" 
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/' ? 600 : 400,
+                fontSize: '1rem',
+                padding: '0.5rem 0',
+                transition: 'all 0.2s'
+              }}
+            >
+              Calculator
+            </Link>
+            <Link 
+              href="/history" 
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/history' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/history' ? 600 : 400,
+                fontSize: '1rem',
+                padding: '0.5rem 0',
+                transition: 'all 0.2s'
+              }}
+            >
+              History
+            </Link>
+            <Link 
+              href="/summary" 
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/summary' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/summary' ? 600 : 400,
+                fontSize: '1rem',
+                padding: '0.5rem 0',
+                transition: 'all 0.2s'
+              }}
+            >
+              Summary
+            </Link>
+            <a 
+              href="https://github.com/bhaktiutama/adimology" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: 'var(--text-secondary)',
+                fontSize: '1rem',
+                padding: '0.5rem 0',
+              }}
+            >
+              <Github size={20} /> View on GitHub
+            </a>
+          </div>
+          <div className="nav-status-group">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Job Status</span>
+              <JobStatusIndicator />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Stockbit Token</span>
+              <TokenStatusIndicator />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Theme</span>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>
