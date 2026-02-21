@@ -11,6 +11,7 @@ const VALID_PRESETS: ScreenerPreset[] = [
   'breakout',
   'momentum',
   'undervalued',
+  'rsi_extreme',
 ];
 
 export async function GET(request: NextRequest) {

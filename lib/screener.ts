@@ -1,11 +1,10 @@
 /**
  * Stock Screener - Filter stocks by technical/fundamental criteria
- * Inspired by Pulse-CLI screen presets
+ * Uses Yahoo Finance for OHLC data (no auth required, reliable)
  */
 
-import { fetchHistoricalSummary } from './stockbit';
+import { fetchYahooHistorical } from './yahooFinance';
 import { analyzeTechnical, type OHLCData, type TechnicalAnalysisResult } from './technical';
-import type { HistoricalSummaryItem } from './stockbit';
 
 export type ScreenerPreset =
   | 'oversold'
@@ -14,7 +13,8 @@ export type ScreenerPreset =
   | 'bearish'
   | 'breakout'
   | 'momentum'
-  | 'undervalued';
+  | 'undervalued'
+  | 'rsi_extreme';
 
 export interface ScreenerCriteria {
   rsiMin?: number;
@@ -40,52 +40,34 @@ const PRESET_CRITERIA: Record<ScreenerPreset, (ta: TechnicalAnalysisResult) => b
   overbought: (ta) => ta.rsi !== null && ta.rsi > 70,
   bullish: (ta) =>
     ta.macdSignal === 'bullish' &&
-    (ta.sma20 !== null && ta.sma20 !== undefined) &&
+    ta.sma20 != null &&
     ta.trend === 'bullish',
   bearish: (ta) =>
     ta.macdSignal === 'bearish' &&
-    (ta.sma20 !== null && ta.sma20 !== undefined) &&
+    ta.sma20 != null &&
     ta.trend === 'bearish',
   breakout: (ta) =>
-    ta.priceVsBB === 'above' && ta.trend === 'bullish' && (ta.rsi ?? 50) < 75,
+    ta.priceVsBB === 'above' && ta.trend === 'bullish' && (ta.rsi ?? 50) < 80,
   momentum: (ta) =>
-    (ta.rsi ?? 0) >= 50 &&
-    (ta.rsi ?? 0) <= 70 &&
+    (ta.rsi ?? 0) >= 45 &&
+    (ta.rsi ?? 0) <= 75 &&
     ta.macdSignal === 'bullish' &&
-    ta.trend === 'bullish',
-  undervalued: (ta) => ta.rsiSignal === 'oversold' || (ta.rsi ?? 50) < 35,
+    (ta.trend === 'bullish' || ta.trend === 'sideways'),
+  undervalued: (ta) => ta.rsiSignal === 'oversold' || (ta.rsi ?? 99) < 40,
+  rsi_extreme: (ta) =>
+    (ta.rsi !== null && ta.rsi < 30) || (ta.rsi !== null && ta.rsi > 70),
 };
-
-function toOHLC(item: HistoricalSummaryItem): OHLCData {
-  return {
-    date: item.date,
-    open: item.open,
-    high: item.high,
-    low: item.low,
-    close: item.close,
-    volume: item.volume,
-  };
-}
 
 export async function screenStock(
   emiten: string,
   preset: ScreenerPreset
 ): Promise<ScreenedStock | null> {
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 120);
-
   try {
-    const raw = await fetchHistoricalSummary(
-      emiten,
-      startDate.toISOString().split('T')[0],
-      endDate.toISOString().split('T')[0],
-      100
-    );
+    const data = await fetchYahooHistorical(emiten, 120);
 
-    if (!raw || raw.length < 50) return null;
+    if (!data || data.length < 35) return null;
 
-    const data = raw.map(toOHLC).reverse();
+    // Yahoo returns chronological (oldest first) - technical analysis expects this
     const ta = analyzeTechnical(data);
 
     if (!PRESET_CRITERIA[preset](ta)) return null;
@@ -124,7 +106,7 @@ export async function runScreener(
     if (r) results.push(r);
 
     if (i < tickers.length - 1) {
-      await new Promise((r) => setTimeout(r, 200));
+      await new Promise((r) => setTimeout(r, 100));
     }
   }
 

@@ -546,7 +546,7 @@ export default async (req: Request) => {
 
     if (cmd === '/screen') {
       const preset = (parts[1] || 'oversold').toLowerCase();
-      const valid = ['oversold', 'overbought', 'bullish', 'bearish', 'momentum', 'breakout', 'undervalued'];
+      const valid = ['oversold', 'overbought', 'bullish', 'bearish', 'momentum', 'breakout', 'undervalued', 'rsi_extreme'];
       const presetVal = valid.includes(preset) ? preset : 'oversold';
       try {
         await sendTelegramMessage(chatId, `⏳ Screener <b>${presetVal}</b> (LQ45)... Bisa 1–2 menit.`);

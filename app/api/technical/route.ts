@@ -1,24 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchHistoricalSummary } from '@/lib/stockbit';
-import { analyzeTechnical, type OHLCData } from '@/lib/technical';
-
-function toOHLC(item: {
-  date: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume?: number;
-}): OHLCData {
-  return {
-    date: item.date,
-    open: item.open,
-    high: item.high,
-    low: item.low,
-    close: item.close,
-    volume: item.volume,
-  };
-}
+import { fetchYahooHistorical } from '@/lib/yahooFinance';
+import { analyzeTechnical } from '@/lib/technical';
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,25 +14,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 150);
+    const data = await fetchYahooHistorical(emiten.toUpperCase(), 150);
 
-    const raw = await fetchHistoricalSummary(
-      emiten.toUpperCase(),
-      startDate.toISOString().split('T')[0],
-      endDate.toISOString().split('T')[0],
-      120
-    );
-
-    if (!raw || raw.length < 50) {
+    if (!data || data.length < 35) {
       return NextResponse.json({
         success: false,
-        error: 'Insufficient historical data for technical analysis (min 50 days)',
+        error: 'Insufficient historical data for technical analysis (min 35 days)',
       }, { status: 400 });
     }
-
-    const data = raw.map(toOHLC).reverse();
     const analysis = analyzeTechnical(data);
 
     return NextResponse.json({

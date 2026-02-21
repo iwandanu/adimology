@@ -11,6 +11,7 @@ const PRESETS = [
   { id: 'momentum', label: 'Momentum', desc: 'RSI 50-70 + MACD bullish' },
   { id: 'breakout', label: 'Breakout', desc: 'Dekat resistance + volume spike' },
   { id: 'undervalued', label: 'Undervalued', desc: 'RSI rendah, potensi value' },
+  { id: 'rsi_extreme', label: 'RSI Extreme', desc: 'Oversold atau Overbought' },
 ] as const;
 
 const UNIVERSES = [

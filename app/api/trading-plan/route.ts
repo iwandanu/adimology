@@ -1,25 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchHistoricalSummary } from '@/lib/stockbit';
+import { fetchYahooHistorical } from '@/lib/yahooFinance';
 import { generateTradingPlan } from '@/lib/tradingPlan';
 import { calculateATR, type OHLCData } from '@/lib/technical';
-
-function toOHLC(item: {
-  date: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume?: number;
-}): OHLCData {
-  return {
-    date: item.date,
-    open: item.open,
-    high: item.high,
-    low: item.low,
-    close: item.close,
-    volume: item.volume,
-  };
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,19 +28,10 @@ export async function POST(request: NextRequest) {
     let historicalData: OHLCData[] | undefined;
 
     try {
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 60);
+      const data = await fetchYahooHistorical(emiten.toUpperCase(), 60);
 
-      const raw = await fetchHistoricalSummary(
-        emiten.toUpperCase(),
-        startDate.toISOString().split('T')[0],
-        endDate.toISOString().split('T')[0],
-        60
-      );
-
-      if (raw && raw.length >= 15) {
-        historicalData = raw.map(toOHLC).reverse();
+      if (data && data.length >= 15) {
+        historicalData = data;
         atr = calculateATR(historicalData, 14);
       }
     } catch {
