@@ -15,9 +15,11 @@ const PRESETS = [
 ] as const;
 
 const UNIVERSES = [
-  { id: 'lq45', label: 'LQ45', count: 45 },
-  { id: 'idx80', label: 'IDX80', count: 80 },
+  { id: 'lq45', label: 'LQ45', count: 46 },
+  { id: 'idx80', label: 'IDX80', count: 66 },
   { id: 'popular', label: 'Popular', count: 40 },
+  { id: 'liquid', label: 'Liquid (LQ45+IDX80)', count: 80 },
+  { id: 'all', label: 'All IDX (~955)', count: 955 },
 ];
 
 export default function ScreenPage() {

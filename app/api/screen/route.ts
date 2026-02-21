@@ -2,6 +2,34 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runScreener } from '@/lib/screener';
 import type { ScreenerPreset } from '@/lib/screener';
 import { UNIVERSES } from '@/lib/universes';
+import {
+  isOHLCConfigured,
+  fetchConstituents,
+  fetchSecurities,
+} from '@/lib/ohlcDev';
+
+async function resolveUniverseTickers(universe: string): Promise<string[]> {
+  const fallback = UNIVERSES[universe] ?? UNIVERSES.lq45;
+  if (!isOHLCConfigured()) return fallback;
+
+  try {
+    if (universe === 'lq45') {
+      const tickers = await fetchConstituents('LQ45');
+      return tickers.length > 0 ? tickers : fallback;
+    }
+    if (universe === 'idx80') {
+      const tickers = await fetchConstituents('IDX80');
+      return tickers.length > 0 ? tickers : fallback;
+    }
+    if (universe === 'all') {
+      const tickers = await fetchSecurities({ start: 0, length: 2000 });
+      return tickers.length > 0 ? tickers : fallback;
+    }
+  } catch (e) {
+    console.warn('[Screen] OHLC universe fetch failed, using static:', e);
+  }
+  return fallback;
+}
 
 const VALID_PRESETS: ScreenerPreset[] = [
   'oversold',
@@ -27,7 +55,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const tickers = UNIVERSES[universe] || UNIVERSES.lq45;
+    const tickers = await resolveUniverseTickers(universe);
 
     const results = await runScreener(tickers, preset);
 

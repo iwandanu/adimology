@@ -7,6 +7,7 @@ import {
 import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const STORY_AI_MODEL = process.env.STORY_AI_MODEL || 'gemini-3.1-pro-preview';
 
 export default async (req: Request) => {
   const startTime = Date.now();
@@ -66,9 +67,9 @@ export default async (req: Request) => {
     await updateAgentStory(parseInt(storyId), { status: 'processing' });
 
     if (jobLogId) {
-      await appendBackgroundJobLogEntry(jobLogId, {
+        await appendBackgroundJobLogEntry(jobLogId, {
         level: 'info',
-        message: `Analyzing using Gemini 3 Flash Preview (Thinking HIGH)...`,
+        message: `Analyzing using ${STORY_AI_MODEL}...`,
         emiten,
       });
     }
@@ -84,7 +85,7 @@ export default async (req: Request) => {
     };
 
     const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    const model = 'gemini-3.1-pro-preview';
+    const model = STORY_AI_MODEL;
     const systemPrompt = "Kamu adalah seorang analis saham profesional Indonesia yang ahli dalam menganalisa story dan katalis pergerakan harga saham.";
     
     let keyStatsContext = '';

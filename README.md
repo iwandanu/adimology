@@ -121,6 +121,8 @@ Ikuti langkah-langkah berikut secara berurutan untuk menjalankan Adimology di cl
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key dari Supabase | ✅ |
    | `CRON_SECRET` | String acak untuk keamanan cron | ✅ |
    | `GEMINI_API_KEY` | API Key dari [Google AI Studio](https://aistudio.google.com/) | ✅ |
+   | `OHLC_DEV_API_KEY` | API key dari [OHLC.dev IDX](https://ohlc.dev/indonesia-stock-exchange-idx-api) (untuk universe dinamis) | ❌ |
+   | `STORY_AI_MODEL` | Model Gemini untuk analisis story (default: gemini-3.1-pro-preview) | ❌ |
 
 5. Klik **Deploy site** dan tunggu hingga selesai
 6. Catat URL Netlify Anda (contoh: `https://your-app.netlify.app`)
@@ -215,6 +217,8 @@ Ikuti langkah-langkah berikut secara berurutan:
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key dari Supabase | ✅ |
    | `GEMINI_API_KEY` | API Key dari [Google AI Studio](https://aistudio.google.com/) | ✅ |
    | `STOCKBIT_JWT_TOKEN` | Token manual (opsional, ekstensi lebih baik) | ❌ |
+   | `OHLC_DEV_API_KEY` | API key dari [OHLC.dev IDX](https://ohlc.dev/indonesia-stock-exchange-idx-api) (universe dinamis) | ❌ |
+   | `STORY_AI_MODEL` | Model Gemini untuk analisis story (default: gemini-3.1-pro-preview) | ❌ |
 
 ## B3. Jalankan Aplikasi
 
@@ -305,6 +309,7 @@ Fitur analisis AI (Story Analysis) menggunakan Netlify Functions. Untuk menjalan
 ### AI Story Analysis error?
 - Pastikan `GEMINI_API_KEY` valid
 - Cek quota API di [Google AI Studio](https://aistudio.google.com/)
+- Ubah model via `STORY_AI_MODEL` (contoh: gemini-2.5-flash-preview-05-20)
 
 ---
 
@@ -316,6 +321,8 @@ Fitur analisis AI (Story Analysis) menggunakan Netlify Functions. Untuk menjalan
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | ✅ | Anon key Supabase |
 | `CRON_SECRET` | ✅ | ❌ | Secret untuk scheduled functions |
 | `GEMINI_API_KEY` | ✅ | ✅ | API Key Google AI Studio |
+| `STORY_AI_MODEL` | ✅ | ✅ | Model Gemini untuk analisis story (default: gemini-3.1-pro-preview) |
+| `OHLC_DEV_API_KEY` | ✅ | ✅ | API key OHLC.dev untuk universe dinamis (LQ45/IDX80/All) |
 | `STOCKBIT_JWT_TOKEN` | ❌ | ⚠️ | Fallback token manual |
 
 ---

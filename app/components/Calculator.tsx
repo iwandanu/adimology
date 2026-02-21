@@ -11,8 +11,10 @@ import BrokerFlowCard from './BrokerFlowCard';
 import EmitenHistoryCard from './EmitenHistoryCard';
 import TechnicalAnalysisCard from './TechnicalAnalysisCard';
 import TradingPlanCard from './TradingPlanCard';
+import CorporateActionsCard from './CorporateActionsCard';
 
 import html2canvas from 'html2canvas';
+import type { CorporateActions } from '@/lib/corporateActions';
 import type { StockInput, StockAnalysisResult, KeyStatsData, AgentStoryResult } from '@/lib/types';
 import { getDefaultDate } from '@/lib/utils';
 
@@ -72,8 +74,10 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   // Technical, Trading Plan
   const [technicalData, setTechnicalData] = useState<Record<string, unknown> | null>(null);
   const [tradingPlanData, setTradingPlanData] = useState<Record<string, unknown> | null>(null);
+  const [corporateActionsData, setCorporateActionsData] = useState<CorporateActions | null>(null);
   const [technicalLoading, setTechnicalLoading] = useState(false);
   const [planLoading, setPlanLoading] = useState(false);
+  const [corporateActionsLoading, setCorporateActionsLoading] = useState(false);
 
   // Agent Story state
   const [agentStories, setAgentStories] = useState<AgentStoryResult[]>([]);
@@ -114,6 +118,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     setKeyStats(null);
     setTechnicalData(null);
     setTradingPlanData(null);
+    setCorporateActionsData(null);
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
@@ -158,6 +163,15 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         })
         .catch(console.error)
         .finally(() => setTechnicalLoading(false));
+
+      setCorporateActionsLoading(true);
+      fetch(`/api/corporate-actions?emiten=${emitenUpper}`)
+        .then((r) => r.json())
+        .then((caJson) => {
+          if (caJson.success) setCorporateActionsData(caJson.data);
+        })
+        .catch(console.error)
+        .finally(() => setCorporateActionsLoading(false));
 
       if (json.data?.marketData?.harga && json.data?.calculated) {
         fetch('/api/trading-plan', {
@@ -456,6 +470,15 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
               <KeyStatsCard
                 emiten={result.input.emiten}
                 keyStats={keyStats}
+              />
+            )}
+
+            {/* Corporate Actions */}
+            {(corporateActionsData || corporateActionsLoading) && (
+              <CorporateActionsCard
+                emiten={result.input.emiten}
+                data={corporateActionsData}
+                loading={corporateActionsLoading}
               />
             )}
 
