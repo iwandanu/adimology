@@ -244,15 +244,25 @@ export default async (req: Request) => {
     const fromDate = parts[2];
     const toDate = parts[3];
 
+    const baseUrl =
+      process.env.URL && !process.env.URL.includes('localhost')
+        ? process.env.URL
+        : `http://${req.headers.get('host') || 'localhost:8888'}`;
+    const apiBase = baseUrl.replace(/\/$/, '');
+
     if (cmd === '/start') {
       await sendTelegramMessage(
         chatId,
         '🤖 <b>Adimology Bot</b>\n\n' +
           'Alternatif akses analisis saham saat tidak bisa buka web.\n\n' +
           '<b>Perintah:</b>\n' +
-          '/adimology EMITEN — Kalkulator target (spt di web)\n' +
-          '/story EMITEN — Minta analisis AI\n' +
-          '/result EMITEN — Lihat hasil analisis AI\n' +
+          '/adimology EMITEN — Kalkulator target\n' +
+          '/technical EMITEN — Analisis teknikal (RSI, MACD)\n' +
+          '/plan EMITEN — Trading plan TP/SL\n' +
+          '/bandar EMITEN — Bandarmology multi-hari\n' +
+          '/screen [preset] — Stock screener\n' +
+          '/story EMITEN — Analisis AI\n' +
+          '/result EMITEN — Hasil analisis AI\n' +
           '/help — Bantuan'
       );
       return new Response('OK', { status: 200 });
@@ -262,11 +272,13 @@ export default async (req: Request) => {
       await sendTelegramMessage(
         chatId,
         '📖 <b>Bantuan</b>\n\n' +
-          '/adimology EMITEN — Analisis target (spt Calculator di web). Butuh token Stockbit tersinkron.\n' +
-          '  Contoh: /adimology BBCA atau /adimology BBCA 2025-02-17 2025-02-19\n\n' +
-          '/story EMITEN — Memulai analisis AI Story (1–2 menit)\n' +
-          '/result EMITEN — Menampilkan hasil analisis AI terakhir\n\n' +
-          'Contoh: /story BBCA lalu tunggu 1–2 menit, lalu /result BBCA'
+          '/adimology EMITEN — Target & broker (Butuh token Stockbit)\n' +
+          '/technical EMITEN — RSI, MACD, Bollinger, SMA\n' +
+          '/plan EMITEN — Trading plan TP/SL/RR\n' +
+          '/bandar EMITEN [days] — Analisis broker flow multi-hari\n' +
+          '/screen [oversold|bullish|...] — Screener (bisa 1–2 menit)\n' +
+          '/story EMITEN — AI Story (1–2 menit)\n' +
+          '/result EMITEN — Hasil AI Story'
       );
       return new Response('OK', { status: 200 });
     }
@@ -280,11 +292,6 @@ export default async (req: Request) => {
         return new Response('OK', { status: 200 });
       }
 
-      const baseUrl =
-        process.env.URL && !process.env.URL.includes('localhost')
-          ? process.env.URL
-          : `http://${req.headers.get('host') || 'localhost:8888'}`;
-      const apiBase = baseUrl.replace(/\/$/, '');
       const dateStr = getDefaultDate();
       const reqFrom = fromDate && /^\d{4}-\d{2}-\d{2}$/.test(fromDate) ? fromDate : dateStr;
       const reqTo = toDate && /^\d{4}-\d{2}-\d{2}$/.test(toDate) ? toDate : dateStr;
@@ -332,11 +339,7 @@ export default async (req: Request) => {
       try {
         const { createAgentStory } = await import('../../lib/supabase');
         const story = await createAgentStory(emiten);
-        const baseUrl =
-          process.env.URL && !process.env.URL.includes('localhost')
-            ? process.env.URL
-            : `http://${req.headers.get('host') || 'localhost:8888'}`;
-        const functionsUrl = `${baseUrl.replace(/\/$/, '')}/.netlify/functions`;
+        const functionsUrl = `${apiBase}/.netlify/functions`;
 
         fetch(
           `${functionsUrl}/analyze-story-background?emiten=${emiten}&id=${story.id}`,
@@ -408,6 +411,167 @@ export default async (req: Request) => {
           chatId,
           `❌ Gagal mengambil hasil: ${err instanceof Error ? err.message : 'Unknown error'}`
         );
+      }
+      return new Response('OK', { status: 200 });
+    }
+
+    if (cmd === '/technical') {
+      if (!emiten || emiten.length > 4) {
+        await sendTelegramMessage(chatId, '❌ Format: /technical EMITEN (contoh: /technical BBCA)');
+        return new Response('OK', { status: 200 });
+      }
+      try {
+        await sendTelegramMessage(chatId, `⏳ Analisis teknikal <b>${emiten}</b>...`);
+        const res = await fetch(`${apiBase}/api/technical?emiten=${emiten}`);
+        const json = await res.json();
+        if (!json.success) {
+          await sendTelegramMessage(chatId, `❌ ${json.error || 'Gagal'}`);
+          return new Response('OK', { status: 200 });
+        }
+        const d = json.data;
+        const fmt = (n: number | null) => (n != null ? n.toFixed(2) : '-');
+        const lines = [
+          `<b>📊 Technical — ${emiten}</b>`,
+          `Harga: Rp ${(d.currentPrice ?? 0).toLocaleString('id-ID')}`,
+          '',
+          `RSI(14): ${fmt(d.rsi)} — ${d.rsiSignal || 'neutral'}`,
+          d.macd ? `MACD: ${fmt(d.macd?.macd)} | ${d.macdSignal || '-'}` : null,
+          `SMA20: ${fmt(d.sma20)} | SMA50: ${fmt(d.sma50)}`,
+          `Support: Rp ${(d.support ?? 0).toLocaleString('id-ID')} | Resistance: Rp ${(d.resistance ?? 0).toLocaleString('id-ID')}`,
+          '',
+          `<b>Trend:</b> ${d.trend || '-'} | <b>Signal:</b> ${d.signal || '-'}`,
+        ].filter(Boolean);
+        await sendTelegramMessage(chatId, lines.join('\n'));
+      } catch (err) {
+        console.error('[Telegram] technical error:', err);
+        await sendTelegramMessage(chatId, `❌ ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+      return new Response('OK', { status: 200 });
+    }
+
+    if (cmd === '/plan') {
+      if (!emiten || emiten.length > 4) {
+        await sendTelegramMessage(chatId, '❌ Format: /plan EMITEN [account] (contoh: /plan BBCA)');
+        return new Response('OK', { status: 200 });
+      }
+      try {
+        await sendTelegramMessage(chatId, `⏳ Membuat trading plan <b>${emiten}</b>...`);
+        const dateStr = getDefaultDate();
+        const stockRes = await fetch(`${apiBase}/api/stock`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emiten, fromDate: dateStr, toDate: dateStr }),
+        });
+        const stockJson = await stockRes.json();
+        if (!stockJson.success || !stockJson.data?.marketData?.harga || !stockJson.data?.calculated) {
+          await sendTelegramMessage(chatId, `❌ Data ${emiten} tidak lengkap. Gunakan /adimology terlebih dahulu.`);
+          return new Response('OK', { status: 200 });
+        }
+        const acc = parseInt(parts[2] || '100000000', 10) || 100000000;
+        const planRes = await fetch(`${apiBase}/api/trading-plan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emiten,
+            currentPrice: stockJson.data.marketData.harga,
+            targetRealistis: stockJson.data.calculated.targetRealistis1,
+            targetMax: stockJson.data.calculated.targetMax,
+            accountSize: acc,
+          }),
+        });
+        const planJson = await planRes.json();
+        if (!planJson.success) {
+          await sendTelegramMessage(chatId, `❌ ${planJson.error || 'Gagal'}`);
+          return new Response('OK', { status: 200 });
+        }
+        const p = planJson.data;
+        const fmt = (n: number) => n.toLocaleString('id-ID');
+        const lines = [
+          `<b>📋 Trading Plan — ${emiten}</b>`,
+          `Entry: Rp ${fmt(p.entry?.price ?? 0)}`,
+          '',
+          '<b>Take Profit</b>',
+          ...(p.takeProfit || []).slice(0, 3).map((tp: any) => `  ${tp.label}: Rp ${fmt(tp.price)} (+${(tp.percentGain || 0).toFixed(2)}%)`),
+          '',
+          `<b>Stop Loss:</b> Rp ${fmt(p.stopLoss?.price ?? 0)} (-${(p.stopLoss?.percentLoss || 0).toFixed(2)}%)`,
+          `<b>R:R TP1:</b> 1:${(p.riskReward?.rrToTP1 ?? 0).toFixed(1)} | <b>Quality:</b> ${(p.riskReward?.quality ?? '-').toUpperCase()}`,
+        ];
+        await sendTelegramMessage(chatId, lines.join('\n'));
+      } catch (err) {
+        console.error('[Telegram] plan error:', err);
+        await sendTelegramMessage(chatId, `❌ ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+      return new Response('OK', { status: 200 });
+    }
+
+    if (cmd === '/bandar') {
+      if (!emiten || emiten.length > 4) {
+        await sendTelegramMessage(chatId, '❌ Format: /bandar EMITEN [days] (contoh: /bandar BBCA 10)');
+        return new Response('OK', { status: 200 });
+      }
+      const days = parseInt(parts[2] || '10', 10) || 10;
+      try {
+        await sendTelegramMessage(chatId, `⏳ Bandarmology <b>${emiten}</b> (${days} hari)...`);
+        const res = await fetch(`${apiBase}/api/bandarmology?emiten=${emiten}&days=${days}`);
+        const json = await res.json();
+        if (!json.success) {
+          await sendTelegramMessage(chatId, `❌ ${json.error || 'Gagal'}`);
+          return new Response('OK', { status: 200 });
+        }
+        const d = json.data;
+        const phaseMap: Record<string, string> = {
+          early_accumulation: 'Early Accumulation',
+          mid_accumulation: 'Mid Accumulation',
+          late_accumulation: 'Late Accumulation',
+          markup_ready: 'Markup Ready',
+          distribution: 'Distribution',
+          neutral: 'Neutral',
+        };
+        const lines = [
+          `<b>🔮 Bandarmology — ${emiten}</b>`,
+          `${d.period?.from || '-'} s/d ${d.period?.to || '-'}`,
+          '',
+          `Flow Momentum: <b>${d.flowMomentum ?? 0}/100</b> [${d.flowMomentumSignal || 'neutral'}]`,
+          `Phase: ${phaseMap[d.phase] || d.phase}`,
+          '',
+          d.recommendation || '',
+        ];
+        await sendTelegramMessage(chatId, lines.join('\n'));
+      } catch (err) {
+        console.error('[Telegram] bandar error:', err);
+        await sendTelegramMessage(chatId, `❌ ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+      return new Response('OK', { status: 200 });
+    }
+
+    if (cmd === '/screen') {
+      const preset = (parts[1] || 'oversold').toLowerCase();
+      const valid = ['oversold', 'overbought', 'bullish', 'bearish', 'momentum', 'breakout', 'undervalued'];
+      const presetVal = valid.includes(preset) ? preset : 'oversold';
+      try {
+        await sendTelegramMessage(chatId, `⏳ Screener <b>${presetVal}</b> (LQ45)... Bisa 1–2 menit.`);
+        const res = await fetch(`${apiBase}/api/screen?preset=${presetVal}&universe=lq45`);
+        const json = await res.json();
+        if (!json.success) {
+          await sendTelegramMessage(chatId, `❌ ${json.error || 'Gagal'}`);
+          return new Response('OK', { status: 200 });
+        }
+        const stocks = json.data?.stocks || [];
+        if (stocks.length === 0) {
+          await sendTelegramMessage(chatId, `Tidak ada saham yang memenuhi kriteria <b>${presetVal}</b>.`);
+          return new Response('OK', { status: 200 });
+        }
+        const lines = [
+          `<b>📋 Screener — ${presetVal}</b> (${stocks.length} saham)`,
+          '',
+          ...stocks.slice(0, 15).map((s: any) =>
+            `${s.emiten} Rp ${(s.price || 0).toLocaleString('id-ID')} | RSI: ${s.rsi != null ? s.rsi.toFixed(1) : '-'} | ${s.signal}`
+          ),
+        ];
+        await sendTelegramMessage(chatId, lines.join('\n'));
+      } catch (err) {
+        console.error('[Telegram] screen error:', err);
+        await sendTelegramMessage(chatId, `❌ ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
       return new Response('OK', { status: 200 });
     }
