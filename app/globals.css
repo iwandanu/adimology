@@ -179,13 +179,10 @@ body::before {
 .glass-card {
   background: var(--glass-frost), var(--glass-bg);
   backdrop-filter: blur(35px) saturate(130%);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--card-border);
   border-radius: 24px;
   padding: 2rem;
-  box-shadow: 
-    var(--shadow-lg),
-    var(--glass-reflection),
-    var(--glass-inner-glow);
+  box-shadow: var(--shadow-lg);
   transition: none;
 }
 
@@ -1161,13 +1158,10 @@ h3 {
 .glass-card-static {
   background: var(--glass-frost), var(--glass-bg);
   backdrop-filter: blur(35px) saturate(120%);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--card-border);
   border-radius: 24px;
   padding: 2rem;
-  box-shadow: 
-    var(--shadow-lg),
-    var(--glass-reflection),
-    var(--glass-inner-glow);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Hide Date Picker Icon */
@@ -1557,13 +1551,10 @@ h3 {
 .broker-flow-card {
   background: var(--glass-frost), var(--glass-bg);
   backdrop-filter: blur(40px) saturate(140%);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--card-border);
   border-radius: 20px;
   padding: 1.25rem;
-  box-shadow: 
-    var(--shadow-lg),
-    var(--glass-reflection),
-    var(--glass-inner-glow);
+  box-shadow: var(--shadow-lg);
   width: 100%;
   height: 600px;
   overflow-y: auto;

@@ -462,8 +462,24 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     if (!el || !result) return;
 
     try {
+      const scale = 1.5;
+      const exportRect = el.getBoundingClientRect();
+      const breakPoints = new Set<number>([0]);
+      const addRects = (nodes: NodeListOf<Element>) => {
+        nodes.forEach((node) => {
+          const r = node.getBoundingClientRect();
+          const topPx = r.top - exportRect.top;
+          const bottomPx = r.bottom - exportRect.top;
+          if (topPx > 0) breakPoints.add(Math.round(topPx * scale));
+          if (bottomPx > 0) breakPoints.add(Math.round(bottomPx * scale));
+        });
+      };
+      addRects(el.querySelectorAll('.compact-card, .broker-summary-card, .keystats-card, .compact-style-card, .glass-card-static, .broker-flow-card, .glass-card'));
+      addRects(el.querySelectorAll(':scope > div'));
+      const sortedBreaks = Array.from(breakPoints).sort((a, b) => a - b);
+
       const canvas = await html2canvas(el, {
-        scale: 1.5,
+        scale,
         useCORS: true,
         logging: false,
         backgroundColor: '#0f0f17',
@@ -544,25 +560,34 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
       doc.setFontSize(8);
       doc.text('Disclaimer: Not financial advice. Past performance does not guarantee future results.', margin, pageHeight - 15);
 
-      // Content pages - split canvas across pages
+      // Content pages - split at card boundaries (never cut a card in half)
       const imgWidth = contentWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+      const pxToMm = imgHeight / canvas.height;
 
-      doc.addPage();
-      doc.setFillColor(15, 15, 23);
-      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      const breakMm = sortedBreaks.map((bp) => bp * pxToMm);
+      let yStartMm = 0;
 
-      doc.addImage(imgData, 'PNG', margin, margin + position, imgWidth, imgHeight);
+      while (yStartMm < imgHeight) {
+        const maxYEndMm = Math.min(yStartMm + contentHeight, imgHeight);
 
-      while (heightLeft > contentHeight) {
-        position = heightLeft - contentHeight;
+        let yEndMm = yStartMm;
+        for (const bp of breakMm) {
+          if (bp > yStartMm && bp <= maxYEndMm) {
+            yEndMm = Math.max(yEndMm, bp);
+          }
+        }
+        if (yEndMm <= yStartMm) {
+          yEndMm = maxYEndMm;
+        }
+
         doc.addPage();
         doc.setFillColor(15, 15, 23);
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
-        doc.addImage(imgData, 'PNG', margin, margin - position, imgWidth, imgHeight);
-        heightLeft -= contentHeight;
+
+        doc.addImage(imgData, 'PNG', margin, margin - yStartMm, imgWidth, imgHeight);
+
+        yStartMm = yEndMm;
       }
 
       // Add page numbers and footer to all pages
