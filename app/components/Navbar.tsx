@@ -32,8 +32,8 @@ const Navbar = () => {
             </svg>
           </div>
           <div className="navbar-content">
-            <h1 className="navbar-title">Adimology Calculator</h1>
-            <p className="navbar-subtitle">Analyze stock targets based on broker summary</p>
+            <h1 className="navbar-title">Iwandanu Stock Tool</h1>
+            <p className="navbar-subtitle">Adimology, plus some extra features</p>
           </div>
         </div>
 
