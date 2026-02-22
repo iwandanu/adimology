@@ -474,6 +474,71 @@ export async function getAgentStoriesByEmiten(emiten: string, limit: number = 20
 }
 
 /**
+ * Create a new BrakotBrekot analysis record with pending status
+ */
+export async function createBrakotBrekotAnalysis(emiten: string) {
+  const { data, error } = await supabase
+    .from('brakotbrekot_analyses')
+    .insert({ emiten, status: 'pending' })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating BrakotBrekot analysis:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Update BrakotBrekot analysis with result or error
+ */
+export async function updateBrakotBrekotAnalysis(id: number, data: {
+  status: 'processing' | 'completed' | 'error';
+  total_skor?: number;
+  status_final?: string;
+  fase_saat_ini?: string;
+  pola_terdeteksi?: string[];
+  rincian_skor?: object;
+  kesimpulan_trading_plan?: string;
+  error_message?: string;
+}) {
+  const { data: result, error } = await supabase
+    .from('brakotbrekot_analyses')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating BrakotBrekot analysis:', error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Get all BrakotBrekot analyses for an emiten
+ */
+export async function getBrakotBrekotAnalysesByEmiten(emiten: string, limit: number = 20) {
+  const { data, error } = await supabase
+    .from('brakotbrekot_analyses')
+    .select('*')
+    .eq('emiten', emiten.toUpperCase())
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching BrakotBrekot analyses:', error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+/**
  * Create a new background job log entry
  */
 export async function createBackgroundJobLog(jobName: string, totalItems: number = 0) {

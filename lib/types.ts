@@ -270,6 +270,34 @@ export interface AgentStoryResult {
   sources?: SourceCitation[];
 }
 
+// BrakotBrekot (SAPTA-style) Types
+export interface BrakotBrekotRincianSkor {
+  nilai: number;
+  maks: number;
+  alasan: string;
+}
+
+export interface BrakotBrekotResult {
+  id?: number;
+  emiten: string;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  total_skor?: number;
+  status_final?: 'PRE-MARKUP' | 'SIAP' | 'WATCHLIST' | 'ABAIKAN';
+  fase_saat_ini?: string;
+  pola_terdeteksi?: string[];
+  rincian_skor?: {
+    supply_absorption?: BrakotBrekotRincianSkor;
+    compression?: BrakotBrekotRincianSkor;
+    bb_squeeze?: BrakotBrekotRincianSkor;
+    elliott_wave?: BrakotBrekotRincianSkor;
+    time_projection?: BrakotBrekotRincianSkor;
+    anti_distribution?: BrakotBrekotRincianSkor;
+  };
+  kesimpulan_trading_plan?: string;
+  error_message?: string;
+  created_at?: string;
+}
+
 
 // Broker Flow Types (from tradersaham broker-intelligence API)
 export interface BrokerFlowDailyData {

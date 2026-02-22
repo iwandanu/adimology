@@ -6,6 +6,7 @@ import CompactResultCard from './CompactResultCard';
 import BrokerSummaryCard from './BrokerSummaryCard';
 import KeyStatsCard from './KeyStatsCard';
 import AgentStoryCard from './AgentStoryCard';
+import BrakotBrekotCard from './BrakotBrekotCard';
 import PriceGraph from './PriceGraph';
 import BrokerFlowCard from './BrokerFlowCard';
 import EmitenHistoryCard from './EmitenHistoryCard';
@@ -15,7 +16,7 @@ import CorporateActionsCard from './CorporateActionsCard';
 
 import html2canvas from 'html2canvas';
 import type { CorporateActions } from '@/lib/corporateActions';
-import type { StockInput, StockAnalysisResult, KeyStatsData, AgentStoryResult } from '@/lib/types';
+import type { StockInput, StockAnalysisResult, KeyStatsData, AgentStoryResult, BrakotBrekotResult } from '@/lib/types';
 import { getDefaultDate } from '@/lib/utils';
 
 interface CalculatorProps {
@@ -84,6 +85,11 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   const [storyStatus, setStoryStatus] = useState<'idle' | 'pending' | 'processing' | 'completed' | 'error'>('idle');
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // BrakotBrekot state
+  const [brakotbrekotAnalyses, setBrakotbrekotAnalyses] = useState<BrakotBrekotResult[]>([]);
+  const [brakotbrekotStatus, setBrakotbrekotStatus] = useState<'idle' | 'pending' | 'processing' | 'completed' | 'error'>('idle');
+  const brakotbrekotPollRef = useRef<NodeJS.Timeout | null>(null);
+
   // Date state lifted from InputForm
   const [fromDate, setFromDate] = useState(getDefaultDate());
   const [toDate, setToDate] = useState(getDefaultDate());
@@ -95,9 +101,15 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
       setError(null);
       setAgentStories([]);
       setStoryStatus('idle');
+      setBrakotbrekotAnalyses([]);
+      setBrakotbrekotStatus('idle');
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
+      }
+      if (brakotbrekotPollRef.current) {
+        clearInterval(brakotbrekotPollRef.current);
+        brakotbrekotPollRef.current = null;
       }
       // Auto-analyze with current selected dates
       // This allows clicking watchlist items to RESPECT the date range selected by user
@@ -115,6 +127,8 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     setResult(null);
     setAgentStories([]);
     setStoryStatus('idle');
+    setBrakotbrekotAnalyses([]);
+    setBrakotbrekotStatus('idle');
     setKeyStats(null);
     setTechnicalData(null);
     setTradingPlanData(null);
@@ -122,6 +136,10 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
+    }
+    if (brakotbrekotPollRef.current) {
+      clearInterval(brakotbrekotPollRef.current);
+      brakotbrekotPollRef.current = null;
     }
 
     try {
@@ -205,12 +223,28 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
           if (latestStory.status === 'completed') {
             setStoryStatus('completed');
           } else if (latestStory.status === 'processing' || latestStory.status === 'pending') {
-            // Resume polling only (GET) — do NOT create a new analysis via POST
             resumeStoryPolling(data.emiten);
           }
         }
       } catch (storyErr) {
         console.error('Failed to fetch existing agent story:', storyErr);
+      }
+
+      // Fetch existing BrakotBrekot analyses
+      try {
+        const bbRes = await fetch(`/api/analyze-brakotbrekot?emiten=${data.emiten}`);
+        const bbJson = await bbRes.json();
+        if (bbJson.success && bbJson.data && Array.isArray(bbJson.data)) {
+          setBrakotbrekotAnalyses(bbJson.data);
+          const latestBB = bbJson.data[0];
+          if (latestBB.status === 'completed') {
+            setBrakotbrekotStatus('completed');
+          } else if (latestBB.status === 'processing' || latestBB.status === 'pending') {
+            resumeBrakotBrekotPolling(data.emiten);
+          }
+        }
+      } catch (bbErr) {
+        console.error('Failed to fetch BrakotBrekot:', bbErr);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -227,9 +261,8 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   // Cleanup polling on unmount
   useEffect(() => {
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (brakotbrekotPollRef.current) clearInterval(brakotbrekotPollRef.current);
     };
   }, []);
 
@@ -294,25 +327,72 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     setStoryStatus('pending');
 
     try {
-      // Trigger background analysis
       const response = await fetch('/api/analyze-story', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          emiten,
-          keyStats: keyStats
-        })
+        body: JSON.stringify({ emiten, keyStats }),
       });
 
       const data = await response.json();
       if (!data.success) throw new Error(data.error);
 
-      // Start polling for status
       resumeStoryPolling(emiten);
-
     } catch (err) {
       console.error('Failed to start analysis:', err);
       setStoryStatus('error');
+    }
+  };
+
+  const resumeBrakotBrekotPolling = (emiten: string) => {
+    setBrakotbrekotStatus('processing');
+    if (brakotbrekotPollRef.current) clearInterval(brakotbrekotPollRef.current);
+
+    brakotbrekotPollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/analyze-brakotbrekot?emiten=${emiten}`);
+        const json = await res.json();
+
+        if (json.success && json.data && Array.isArray(json.data)) {
+          setBrakotbrekotAnalyses(json.data);
+          const latest = json.data[0];
+          if (latest.status === 'completed') {
+            setBrakotbrekotStatus('completed');
+            if (brakotbrekotPollRef.current) clearInterval(brakotbrekotPollRef.current);
+          } else if (latest.status === 'error') {
+            setBrakotbrekotStatus('error');
+            if (brakotbrekotPollRef.current) clearInterval(brakotbrekotPollRef.current);
+          }
+        }
+      } catch (err) {
+        console.error('BrakotBrekot polling error:', err);
+      }
+    }, 5000);
+  };
+
+  const handleAnalyzeBrakotBrekot = async () => {
+    if (!result) return;
+
+    const emiten = result.input.emiten.toUpperCase();
+    setBrakotbrekotStatus('pending');
+
+    try {
+      const response = await fetch('/api/analyze-brakotbrekot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emiten,
+          brokerSummary: result.brokerSummary,
+          technicalData,
+        }),
+      });
+
+      const data = await response.json();
+      if (!data.success) throw new Error(data.error);
+
+      resumeBrakotBrekotPolling(emiten);
+    } catch (err) {
+      console.error('Failed to start BrakotBrekot:', err);
+      setBrakotbrekotStatus('error');
     }
   };
 
@@ -390,9 +470,11 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         onCopyText={handleCopy}
         onCopyImage={handleCopyImage}
         onAnalyzeAI={() => handleAnalyzeStory()}
+        onAnalyzeBrakotBrekot={() => handleAnalyzeBrakotBrekot()}
         copiedText={copied}
         copiedImage={copiedImage}
         storyStatus={storyStatus}
+        brakotbrekotStatus={brakotbrekotStatus}
         hasResult={!!result}
       />
 
@@ -540,13 +622,20 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
               </div>
             </div>
 
-            {/* Agent Story Section - Full Width */}
-            <div style={{ gridColumn: '1 / -1', width: '100%' }}>
+            {/* Agent Story + BrakotBrekot Section - Full Width */}
+            <div style={{ gridColumn: '1 / -1', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {(agentStories.length > 0 || storyStatus !== 'idle') && (
                 <AgentStoryCard
                   stories={agentStories}
                   status={storyStatus}
                   onRetry={() => handleAnalyzeStory()}
+                />
+              )}
+              {(brakotbrekotAnalyses.length > 0 || brakotbrekotStatus !== 'idle') && (
+                <BrakotBrekotCard
+                  analyses={brakotbrekotAnalyses}
+                  status={brakotbrekotStatus}
+                  onRetry={() => handleAnalyzeBrakotBrekot()}
                 />
               )}
             </div>

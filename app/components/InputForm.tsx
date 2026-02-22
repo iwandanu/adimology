@@ -16,9 +16,11 @@ interface InputFormProps {
   onCopyText?: () => void;
   onCopyImage?: () => void;
   onAnalyzeAI?: () => void;
+  onAnalyzeBrakotBrekot?: () => void;
   copiedText?: boolean;
   copiedImage?: boolean;
   storyStatus?: 'idle' | 'pending' | 'processing' | 'completed' | 'error';
+  brakotbrekotStatus?: 'idle' | 'pending' | 'processing' | 'completed' | 'error';
   hasResult?: boolean;
 }
 
@@ -32,9 +34,11 @@ export default function InputForm({
   onCopyText,
   onCopyImage,
   onAnalyzeAI,
+  onAnalyzeBrakotBrekot,
   copiedText,
   copiedImage,
   storyStatus,
+  brakotbrekotStatus,
   hasResult
 }: InputFormProps) {
   const [emiten, setEmiten] = useState('SOCI');
@@ -240,7 +244,7 @@ export default function InputForm({
                 fontSize: '0.8rem',
                 fontWeight: '600',
                 borderRadius: '8px',
-                background: '#4f46e5', // Solid shade for Analyze
+                background: '#4f46e5',
                 color: 'white',
                 border: '1px solid #4f46e5',
                 cursor: 'pointer',
@@ -251,16 +255,39 @@ export default function InputForm({
               }}
             >
               {storyStatus === 'pending' || storyStatus === 'processing' ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  ⏳ Analyzing...
-                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>⏳ Story...</span>
               ) : (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path>
-                  </svg>
-                  Analyze Story
-                </>
+                <>⭐ Analyze Story</>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={onAnalyzeBrakotBrekot}
+              disabled={brakotbrekotStatus === 'pending' || brakotbrekotStatus === 'processing' || !hasResult}
+              className="solid-btn"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                padding: '0 1rem',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                borderRadius: '8px',
+                background: '#059669',
+                color: 'white',
+                border: '1px solid #059669',
+                cursor: 'pointer',
+                opacity: hasResult ? 1 : 0.5,
+                pointerEvents: hasResult ? 'auto' : 'none',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)'
+              }}
+            >
+              {brakotbrekotStatus === 'pending' || brakotbrekotStatus === 'processing' ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>⏳ BrakotBrekot...</span>
+              ) : (
+                <>📊 BrakotBrekot</>
               )}
             </button>
           </div>
