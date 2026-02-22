@@ -3,7 +3,8 @@
 > [!CAUTION]
 > **PERINGATAN KEAMANAN**: Jangan pernah membagikan URL aplikasi Netlify Anda secara publik. Aplikasi ini melakukan sinkronisasi token sesi Stockbit Anda ke database. Jika URL bocor, orang lain dapat menyalahgunakan akses tersebut. Meski begitu, aplikasi ini tetap tidak bisa melakukan transaksi karena tidak bisa mengakses fitur PIN. Gunakan aplikasi ini hanya untuk penggunaan pribadi.
 
-Adimology adalah aplikasi web untuk menganalisis target harga saham berdasarkan data transaksi broker (bandarmologi) dari Stockbit. Aplikasi ini juga melacak performa analisis secara otomatis dan menyediakan data akumulasi broker.
+> [!IMPORTANT]
+> **DISCLAIMER & TANGGUNG JAWAB**: Dengan menginstal dan menggunakan aplikasi ini, Anda menyatakan sadar dan setuju bahwa aplikasi ini akan menggunakan token sesi Stockbit Anda untuk keperluan sinkronisasi data. Pengguna memahami sepenuhnya cara kerja aplikasi ini dan membebaskan pengembang dari segala tuntutan hukum atau kerugian yang mungkin timbul. Pengembang tidak bertanggung jawab atas penyalahgunaan akses jika URL aplikasi Anda diketahui oleh pihak lain.
 
 ![Adimology Preview 1](public/adimology01.PNG)
 
@@ -14,6 +15,17 @@ Adimology adalah aplikasi web untuk menganalisis target harga saham berdasarkan 
 ---
 
 ## Changelog
+
+### v0.3.3 (2026-02-22)
+- **Password Protection**: Implementasi keamanan akses aplikasi dengan proteksi password.
+- **Session-based Unlocking**: Mekanisme akses satu kali per sesi.
+- **Reset Documentation**: Panduan pemulihan akses melalui Supabase jika lupa password.
+
+### v0.3.2 (2026-02-22)
+- **Local Watchlist & Normalization**: Mengalihkan penyimpanan data watchlist dari Stockbit API ke database lokal (cache-first) dengan struktur database yang lebih efisien.
+- **Status Indicator UI**: Pembaruan indikator status token dengan warna **Orange** untuk status "Expiring", serta pemindahan indikator proses fetching stockbit ke Navbar untuk mencegah *layout shifting*.
+- **Spinner & Aesthetics**: Pembaruan gaya visual spinner menjadi transparan (arc-only) dan penyatuan status sinkronisasi *Watchlist* ke indikator global di Navbar.
+- **Documentation Migration**: Memindahkan panduan instalasi lengkap ke Wiki (`docs/WIKI_DEPLOY_LOCAL.md` & `docs/WIKI_DEPLOY_CLOUD.md`) untuk menjaga agar README tetap ringkas.
 
 ### v0.3.1 (2026-02-19)
 - **Responsive Navbar**: Implementasi menu hamburger untuk tampilan mobile, memindahkan indikator status dan toggle tema ke dalam sub-menu.
@@ -55,6 +67,7 @@ Adimology adalah aplikasi web untuk menganalisis target harga saham berdasarkan 
 - **AI Story Analysis**: Analisis berita dan sentimen pasar menggunakan AI (Gemini) untuk merangkum story, SWOT, dan katalis emiten secara instan.
 - **Multi-Version Analysis**: Menyimpan dan menampilkan riwayat analisis AI sebelumnya sehingga Anda bisa melacak perubahan narasi pasar dari waktu ke waktu.
 - **Export to PDF**: Unduh laporan riwayat analisis dalam format PDF yang rapi.
+- **Password Protection**: Proteksi keamanan akses aplikasi untuk menjaga privasi data dan token sesi Anda.
 
 ---
 
@@ -162,11 +175,13 @@ Ikuti langkah-langkah berikut secara berurutan untuk menjalankan Adimology di cl
 4. Cek indikator koneksi Stockbit di aplikasi - harus menunjukkan **Connected**
 5. Coba analisis saham pertama Anda! 🎉
 
+👉 **[Lihat Panduan Deploy Cloud Selengkapnya di Wiki](https://github.com/bhaktiutama/adimology/wiki/Deploy-Cloud)**
+
 ---
 
 # OPSI B: Instalasi Lokal (PC + Supabase)
 
-Ikuti langkah-langkah berikut secara berurutan:
+Opsi ini cocok untuk pengembangan atau jika Anda hanya ingin menjalankan aplikasi di komputer sendiri.
 
 ## B1. Setup Supabase
 
@@ -286,6 +301,8 @@ Fitur analisis AI (Story Analysis) menggunakan Netlify Functions. Untuk menjalan
 5. Cek indikator koneksi Stockbit - harus menunjukkan **Connected**
 6. Coba analisis saham pertama Anda! 🎉
 
+👉 **[Lihat Panduan Instalasi Lokal Selengkapnya di Wiki](https://github.com/bhaktiutama/adimology/wiki/Deploy-Local)**
+
 ---
 
 ## Troubleshooting
@@ -310,6 +327,8 @@ Fitur analisis AI (Story Analysis) menggunakan Netlify Functions. Untuk menjalan
 - Pastikan `GEMINI_API_KEY` valid
 - Cek quota API di [Google AI Studio](https://aistudio.google.com/)
 - Ubah model via `STORY_AI_MODEL` (contoh: gemini-2.5-flash-preview-05-20)
+
+👉 **[Punya masalah? Lihat Checkpoint Troubleshooting di Wiki](https://github.com/bhaktiutama/adimology/wiki/Checkpoint)**
 
 ---
 
