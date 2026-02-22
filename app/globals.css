@@ -42,6 +42,7 @@
   /* Border */
   --border-color: rgba(255, 255, 255, 0.1);
   --glass-border: rgba(255, 255, 255, 0.12);
+  --card-border: rgba(255, 255, 255, 0.08);
 
   /* Shadows */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -98,6 +99,7 @@
   /* Border */
   --border-color: rgba(0, 0, 0, 0.08);
   --glass-border: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(0, 0, 0, 0.06);
 
   /* Shadows */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -595,16 +597,13 @@ h3 {
   height: 650px;
   background: var(--glass-frost), var(--glass-bg);
   backdrop-filter: blur(35px) saturate(130%);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--card-border);
   border-radius: 20px;
   padding: 1rem;
   font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
   color: var(--text-primary);
-  box-shadow: 
-    var(--shadow-lg),
-    var(--glass-reflection),
-    var(--glass-inner-glow);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 
@@ -798,16 +797,13 @@ h3 {
   width: 350px;
   background: var(--glass-frost), var(--glass-bg);
   backdrop-filter: blur(35px) saturate(130%);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--card-border);
   border-radius: 20px;
   padding: 1rem;
   font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
   color: var(--text-primary);
-  box-shadow: 
-    var(--shadow-lg),
-    var(--glass-reflection),
-    var(--glass-inner-glow);
+  box-shadow: var(--shadow-lg);
   height: 650px;
   overflow: hidden;
 }
@@ -1339,16 +1335,13 @@ h3 {
   height: 650px;
   background: var(--glass-frost), var(--glass-bg);
   backdrop-filter: blur(35px) saturate(120%);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--card-border);
   border-radius: 20px;
   padding: 1rem;
   font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
   color: var(--text-primary);
-  box-shadow: 
-    var(--shadow-lg),
-    var(--glass-reflection),
-    var(--glass-inner-glow);
+  box-shadow: var(--shadow-lg);
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -1412,13 +1405,13 @@ h3 {
 .compact-style-card {
   background: var(--glass-frost), var(--glass-bg);
   backdrop-filter: blur(35px) saturate(120%);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--card-border);
   border-radius: 20px;
   padding: 1rem;
   font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
   color: var(--text-primary);
-  box-shadow: var(--shadow-lg), var(--glass-reflection), var(--glass-inner-glow);
+  box-shadow: var(--shadow-lg);
   min-height: 300px;
 }
 

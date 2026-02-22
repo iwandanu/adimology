@@ -565,18 +565,21 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         heightLeft -= contentHeight;
       }
 
-      // Add page numbers to all content pages
+      // Add page numbers and footer to all pages
       const totalPages = doc.getNumberOfPages();
-      for (let i = 2; i <= totalPages; i++) {
+      for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
         doc.setTextColor(120, 120, 130);
-        doc.text(
-          `Page ${i - 1} of ${totalPages - 1}`,
-          pageWidth / 2,
-          pageHeight - 8,
-          { align: 'center' }
-        );
+        if (i >= 2) {
+          doc.text(
+            `Page ${i - 1} of ${totalPages - 1}`,
+            pageWidth / 2,
+            pageHeight - 8,
+            { align: 'center' }
+          );
+        }
+        doc.text('twitter @iwandanu', pageWidth - margin, pageHeight - 8, { align: 'right' });
       }
 
       const timestamp = new Date().toISOString().slice(0, 10);
