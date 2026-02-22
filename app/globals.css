@@ -1674,22 +1674,22 @@ h3 {
 }
 
 .broker-code-badge.bandar {
-  background: color-mix(in srgb, var(--broker-smartmoney) 15%, transparent);
+  background: rgba(102, 126, 234, 0.15);
   color: var(--broker-smartmoney);
 }
 
 .broker-code-badge.whale {
-  background: color-mix(in srgb, var(--broker-whale) 15%, transparent);
+  background: rgba(56, 239, 125, 0.15);
   color: var(--broker-whale);
 }
 
 .broker-code-badge.retail {
-  background: color-mix(in srgb, var(--broker-retail) 15%, transparent);
+  background: rgba(245, 87, 108, 0.15);
   color: var(--broker-retail);
 }
 
 .broker-code-badge.mix {
-  background: color-mix(in srgb, var(--broker-mix) 15%, transparent);
+  background: rgba(240, 147, 251, 0.15);
   color: var(--broker-mix);
 }
 
@@ -1765,7 +1765,7 @@ h3 {
 }
 
 .consistency-badge {
-  background: color-mix(in srgb, var(--broker-smartmoney) 12%, transparent);
+  background: rgba(102, 126, 234, 0.12);
   color: var(--broker-smartmoney);
   padding: 2px 8px;
   border-radius: 4px;
