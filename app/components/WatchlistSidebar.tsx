@@ -2,13 +2,14 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import type { WatchlistItem, WatchlistGroup } from '@/lib/types';
-import { CheckCircle2, XCircle, MinusCircle, Search, Filter, X } from 'lucide-react';
+import { CheckCircle2, XCircle, MinusCircle, Search, Filter, X, PanelRightClose } from 'lucide-react';
 
 interface WatchlistSidebarProps {
   onSelect?: (symbol: string) => void;
+  onCollapse?: () => void;
 }
 
-export default function WatchlistSidebar({ onSelect }: WatchlistSidebarProps) {
+export default function WatchlistSidebar({ onSelect, onCollapse }: WatchlistSidebarProps) {
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [groups, setGroups] = useState<WatchlistGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
@@ -230,6 +231,27 @@ export default function WatchlistSidebar({ onSelect }: WatchlistSidebarProps) {
             Watchlist
           </h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {onCollapse && (
+              <button
+                type="button"
+                onClick={onCollapse}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'color 0.2s'
+                }}
+                title="Hide Watchlist"
+                aria-label="Hide Watchlist"
+              >
+                <PanelRightClose size={14} />
+              </button>
+            )}
             <button 
               onClick={() => setShowFilters(!showFilters)}
               style={{

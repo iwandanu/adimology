@@ -15,6 +15,7 @@ interface InputFormProps {
   // Action Button Props
   onCopyText?: () => void;
   onCopyImage?: () => void;
+  onExportPDF?: () => void;
   onAnalyzeAI?: () => void;
   onAnalyzeBrakotBrekot?: () => void;
   copiedText?: boolean;
@@ -33,6 +34,7 @@ export default function InputForm({
   onDateChange,
   onCopyText,
   onCopyImage,
+  onExportPDF,
   onAnalyzeAI,
   onAnalyzeBrakotBrekot,
   copiedText,
@@ -259,6 +261,32 @@ export default function InputForm({
               ) : (
                 <>⭐ Analyze Story</>
               )}
+            </button>
+            <button
+              type="button"
+              onClick={onExportPDF}
+              disabled={!hasResult}
+              className="solid-btn"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                padding: '0 1rem',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                borderRadius: '8px',
+                background: '#dc2626',
+                color: 'white',
+                border: '1px solid #dc2626',
+                cursor: 'pointer',
+                opacity: hasResult ? 1 : 0.5,
+                pointerEvents: hasResult ? 'auto' : 'none',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
+              }}
+            >
+              📄 Export PDF
             </button>
             <button
               type="button"

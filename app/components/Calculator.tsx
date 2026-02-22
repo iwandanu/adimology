@@ -15,6 +15,7 @@ import TradingPlanCard from './TradingPlanCard';
 import CorporateActionsCard from './CorporateActionsCard';
 
 import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import type { CorporateActions } from '@/lib/corporateActions';
 import type { StockInput, StockAnalysisResult, KeyStatsData, AgentStoryResult, BrakotBrekotResult } from '@/lib/types';
 import { getDefaultDate } from '@/lib/utils';
@@ -456,6 +457,115 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     }
   };
 
+  const handleExportPDF = async () => {
+    const el = document.getElementById('calculator-result-export');
+    if (!el || !result) return;
+
+    try {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#0f0f17',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 10;
+      const contentWidth = pageWidth - margin * 2;
+      const contentHeight = pageHeight - margin * 2 - 15;
+
+      // Cover page - professional research header
+      doc.setFillColor(15, 15, 23);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.text('EQUITY RESEARCH REPORT', margin, 35);
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(102, 126, 234);
+      doc.text(result.input.emiten.toUpperCase(), margin, 50);
+
+      doc.setTextColor(180, 180, 190);
+      doc.setFontSize(10);
+      doc.text(`${result.sector || '—'}  •  Period: ${result.input.fromDate} — ${result.input.toDate}`, margin, 58);
+
+      doc.setTextColor(150, 150, 160);
+      doc.setFontSize(9);
+      const reportDate = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      doc.text(`Generated: ${reportDate}`, margin, 68);
+
+      doc.setDrawColor(60, 60, 80);
+      doc.setLineWidth(0.5);
+      doc.line(margin, 78, pageWidth - margin, 78);
+
+      doc.setFontSize(9);
+      doc.setTextColor(130, 130, 140);
+      doc.text('This report contains Adimology analysis, AI Story insights, BrakotBrekot (Smart Money & Technical)', margin, 88);
+      doc.text('analysis, broker summary, key statistics, and trading plan. For informational purposes only.', margin, 94);
+
+      doc.setTextColor(100, 100, 110);
+      doc.setFontSize(8);
+      doc.text('Disclaimer: Not financial advice. Past performance does not guarantee future results.', margin, pageHeight - 15);
+
+      // Content pages - split canvas across pages
+      const imgWidth = contentWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      doc.addPage();
+      doc.setFillColor(15, 15, 23);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+      doc.addImage(imgData, 'PNG', margin, margin + position, imgWidth, imgHeight);
+
+      while (heightLeft > contentHeight) {
+        position = heightLeft - contentHeight;
+        doc.addPage();
+        doc.setFillColor(15, 15, 23);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        doc.addImage(imgData, 'PNG', margin, margin - position, imgWidth, imgHeight);
+        heightLeft -= contentHeight;
+      }
+
+      // Add page numbers to all content pages
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 2; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 130);
+        doc.text(
+          `Page ${i - 1} of ${totalPages - 1}`,
+          pageWidth / 2,
+          pageHeight - 8,
+          { align: 'center' }
+        );
+      }
+
+      const timestamp = new Date().toISOString().slice(0, 10);
+      doc.save(`Research-Report-${result.input.emiten}-${timestamp}.pdf`);
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+      setError('Failed to export PDF. Please try again.');
+    }
+  };
+
   return (
     <div className="container">
 
@@ -469,6 +579,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         onDateChange={handleDateChange}
         onCopyText={handleCopy}
         onCopyImage={handleCopyImage}
+        onExportPDF={handleExportPDF}
         onAnalyzeAI={() => handleAnalyzeStory()}
         onAnalyzeBrakotBrekot={() => handleAnalyzeBrakotBrekot()}
         copiedText={copied}
@@ -496,7 +607,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
       )}
 
       {result && (
-        <div style={{ marginTop: '2rem' }}>
+        <div style={{ marginTop: '2rem' }} id="calculator-result-export">
           {result.isFromHistory && result.historyDate && (
             <div style={{
               marginBottom: '1.5rem',
