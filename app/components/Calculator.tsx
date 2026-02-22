@@ -555,45 +555,41 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
               />
             )}
 
-            {/* Corporate Actions */}
-            {(corporateActionsData || corporateActionsLoading) && (
-              <CorporateActionsCard
-                emiten={result.input.emiten}
-                data={corporateActionsData}
-                loading={corporateActionsLoading}
-              />
-            )}
-
-            {/* Technical Analysis (1/3) + Trading Plan (2/3) */}
-            <div style={{
-              gridColumn: '1 / -1',
-              display: 'flex',
-              gap: '1.5rem',
-              flexWrap: 'wrap',
-            }}>
+            {/* Corporate Actions | Technical Analysis | Trading Plan — 3 cards in one row, 1/3 each */}
+            <div
+              style={{
+                width: '100%',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '1.5rem',
+              }}
+            >
+              {(corporateActionsData || corporateActionsLoading) && (
+                <CorporateActionsCard
+                  emiten={result.input.emiten}
+                  data={corporateActionsData}
+                  loading={corporateActionsLoading}
+                />
+              )}
               {(technicalData || technicalLoading) && (
-                <div style={{ flex: '1 1 0', minWidth: '260px' }}>
-                  <TechnicalAnalysisCard
-                    emiten={result.input.emiten}
-                    data={(technicalData as any) || {}}
-                    loading={technicalLoading}
-                  />
-                </div>
+                <TechnicalAnalysisCard
+                  emiten={result.input.emiten}
+                  data={(technicalData as any) || {}}
+                  loading={technicalLoading}
+                />
               )}
               {(tradingPlanData || planLoading) && (
-                <div style={{ flex: '2 2 0', minWidth: '260px' }}>
-                  <TradingPlanCard
-                    data={(tradingPlanData as any) || {
-                      emiten: result.input.emiten,
-                      entry: { price: result.marketData?.harga ?? 0, type: 'market', trend: '-', signal: '-' },
-                      takeProfit: [],
-                      stopLoss: { price: 0, percentLoss: 0, method: '-' },
-                      riskReward: { riskPerShare: 0, rewardTP1: 0, rewardTP2: 0, rrToTP1: 0, rrToTP2: 0, quality: 'fair' },
-                      executionStrategy: [],
-                    }}
-                    loading={planLoading}
-                  />
-                </div>
+                <TradingPlanCard
+                  data={(tradingPlanData as any) || {
+                    emiten: result.input.emiten,
+                    entry: { price: result.marketData?.harga ?? 0, type: 'market', trend: '-', signal: '-' },
+                    takeProfit: [],
+                    stopLoss: { price: 0, percentLoss: 0, method: '-' },
+                    riskReward: { riskPerShare: 0, rewardTP1: 0, rewardTP2: 0, rrToTP1: 0, rrToTP2: 0, quality: 'fair' },
+                    executionStrategy: [],
+                  }}
+                  loading={planLoading}
+                />
               )}
             </div>
 

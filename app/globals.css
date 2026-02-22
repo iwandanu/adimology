@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   /* Common Variables */
@@ -1369,6 +1369,30 @@ h3 {
   color: var(--text-primary);
   padding: 6px 0;
   text-align: right;
+}
+
+/* Compact-style card: same typography as keystats/broker-summary, flexible size for flex layout */
+.compact-style-card {
+  background: var(--glass-frost), var(--glass-bg);
+  backdrop-filter: blur(35px) saturate(120%);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 1rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-lg), var(--glass-reflection), var(--glass-inner-glow);
+  min-height: 300px;
+}
+
+.compact-style-card .compact-section-title {
+  font-size: 0.65rem;
+}
+.compact-style-card .compact-label {
+  font-size: 0.6rem;
+}
+.compact-style-card .compact-value {
+  font-size: 0.85rem;
 }
 
 /* ===== Token Status Indicator ===== */

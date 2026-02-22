@@ -14,8 +14,16 @@ export default function TechnicalAnalysisCard({ emiten, data, loading }: Technic
 
   if (loading) {
     return (
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
-        <h3 className="card-title">📊 Technical Analysis</h3>
+      <div className="compact-style-card">
+        <div className="compact-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }}>
+              <path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" />
+            </svg>
+            <div className="compact-ticker" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Technical Analysis</div>
+          </div>
+          <div className="compact-date">{emiten.toUpperCase()}</div>
+        </div>
         <div className="spinner" style={{ margin: '1rem auto' }}></div>
       </div>
     );
@@ -29,147 +37,90 @@ export default function TechnicalAnalysisCard({ emiten, data, loading }: Technic
         : 'var(--text-muted)';
 
   return (
-    <div className="glass-card" style={{ padding: '1.5rem' }}>
-      <h3 className="card-title">📊 Technical Analysis — {emiten}</h3>
+    <div className="compact-style-card">
+      <div className="compact-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }}>
+            <path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" />
+          </svg>
+          <div className="compact-ticker" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Technical Analysis</div>
+        </div>
+        <div className="compact-date">{emiten.toUpperCase()}</div>
+      </div>
 
-      <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
-        {/* RSI */}
+      <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.5rem' }}>
         <div className="compact-section">
           <div className="compact-section-title">RSI (14)</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span
-              style={{
-                fontSize: '1.1rem',
-                fontWeight: 700,
-                color:
-                  data.rsiSignal === 'oversold'
-                    ? 'var(--accent-success)'
-                    : data.rsiSignal === 'overbought'
-                      ? 'var(--accent-warning)'
-                      : 'var(--text-primary)',
-              }}
-            >
+            <span className="compact-value" style={{ fontSize: '0.9rem', fontWeight: 700, color: data.rsiSignal === 'oversold' ? 'var(--accent-success)' : data.rsiSignal === 'overbought' ? 'var(--accent-warning)' : 'var(--text-primary)' }}>
               {fmt(data.rsi)}
             </span>
-            <span
-              style={{
-                fontSize: '0.75rem',
-                padding: '2px 8px',
-                borderRadius: '8px',
-                background:
-                  data.rsiSignal === 'oversold'
-                    ? 'rgba(56, 239, 125, 0.2)'
-                    : data.rsiSignal === 'overbought'
-                      ? 'rgba(245, 87, 108, 0.2)'
-                      : 'rgba(255,255,255,0.08)',
-                textTransform: 'capitalize',
-              }}
-            >
+            <span style={{ fontSize: '0.65rem', padding: '2px 6px', borderRadius: '6px', background: data.rsiSignal === 'oversold' ? 'rgba(56, 239, 125, 0.2)' : data.rsiSignal === 'overbought' ? 'rgba(245, 87, 108, 0.2)' : 'rgba(255,255,255,0.08)', textTransform: 'capitalize' }}>
               {data.rsiSignal}
             </span>
           </div>
         </div>
 
-        {/* MACD */}
         {data.macd && (
           <div className="compact-section">
             <div className="compact-section-title">MACD</div>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', fontSize: '0.75rem' }}>
               <span>MACD: {fmt(data.macd.macd)}</span>
               <span>Signal: {fmt(data.macd.signal)}</span>
-              <span
-                style={{
-                  color:
-                    data.macdSignal === 'bullish'
-                      ? 'var(--accent-success)'
-                      : data.macdSignal === 'bearish'
-                        ? 'var(--accent-warning)'
-                        : 'var(--text-muted)',
-                }}
-              >
+              <span style={{ color: data.macdSignal === 'bullish' ? 'var(--accent-success)' : data.macdSignal === 'bearish' ? 'var(--accent-warning)' : 'var(--text-muted)' }}>
                 {data.macdSignal}
               </span>
             </div>
           </div>
         )}
 
-        {/* SMA */}
         <div className="compact-section">
           <div className="compact-section-title">Moving Averages</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
-            <div>
+          <div className="compact-grid-3">
+            <div className="compact-cell">
               <span className="compact-label">SMA 20</span>
-              <div className="compact-value">{fmt(data.sma20)}</div>
+              <span className="compact-value">{fmt(data.sma20)}</span>
             </div>
-            <div>
+            <div className="compact-cell">
               <span className="compact-label">SMA 50</span>
-              <div className="compact-value">{fmt(data.sma50)}</div>
+              <span className="compact-value">{fmt(data.sma50)}</span>
             </div>
-            <div>
+            <div className="compact-cell">
               <span className="compact-label">SMA 200</span>
-              <div className="compact-value">{fmt(data.sma200)}</div>
+              <span className="compact-value">{fmt(data.sma200)}</span>
             </div>
           </div>
         </div>
 
-        {/* Bollinger */}
         {data.bollinger && (
           <div className="compact-section">
             <div className="compact-section-title">Bollinger Bands</div>
-            <div style={{ fontSize: '0.85rem' }}>
-              Upper: {fmt(data.bollinger.upper)} | Middle: {fmt(data.bollinger.middle)} | Lower:{' '}
-              {fmt(data.bollinger.lower)}
+            <div style={{ fontSize: '0.75rem' }}>
+              Upper: {fmt(data.bollinger.upper)} | Mid: {fmt(data.bollinger.middle)} | Lower: {fmt(data.bollinger.lower)}
             </div>
-            <span
-              style={{
-                fontSize: '0.75rem',
-                color: 'var(--text-muted)',
-                textTransform: 'capitalize',
-              }}
-            >
-              Price vs BB: {data.priceVsBB}
-            </span>
+            <span className="compact-label" style={{ marginTop: '0.25rem', display: 'block' }}>Price vs BB: {data.priceVsBB}</span>
           </div>
         )}
 
-        {/* Support / Resistance */}
         {(data.support != null || data.resistance != null) && (
           <div className="compact-section">
             <div className="compact-section-title">Support / Resistance</div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem' }}>
               <span>Support: Rp {fmt(data.support)}</span>
               <span>Resistance: Rp {fmt(data.resistance)}</span>
             </div>
           </div>
         )}
 
-        {/* Summary */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '0.75rem',
-            background: 'rgba(255,255,255,0.05)',
-            borderRadius: '12px',
-            border: `1px solid ${signalColor}40`,
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Trend</div>
-            <div style={{ textTransform: 'capitalize', fontWeight: 600 }}>{data.trend}</div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Signal</div>
-            <div
-              style={{
-                fontSize: '1rem',
-                fontWeight: 700,
-                color: signalColor,
-                textTransform: 'uppercase',
-              }}
-            >
-              {data.signal}
+        <div className="compact-section" style={{ padding: '0.5rem 0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: `1px solid ${signalColor}40` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div className="compact-label">Trend</div>
+              <div className="compact-value" style={{ textTransform: 'capitalize', fontWeight: 600 }}>{data.trend}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div className="compact-label">Signal</div>
+              <div className="compact-value" style={{ fontSize: '0.85rem', fontWeight: 700, color: signalColor, textTransform: 'uppercase' }}>{data.signal}</div>
             </div>
           </div>
         </div>
