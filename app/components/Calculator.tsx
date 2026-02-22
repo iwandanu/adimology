@@ -462,56 +462,43 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     }
   };
 
+  const captureSection = async (id: string): Promise<{ canvas: HTMLCanvasElement; imgData: string } | null> => {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const canvas = await html2canvas(el, {
+      scale: 1.5,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#0f0f17',
+      allowTaint: false,
+      foreignObjectRendering: false,
+      ignoreElements: (node) => {
+        if (node instanceof HTMLIFrameElement) return true;
+        if (node instanceof HTMLScriptElement) return true;
+        return false;
+      },
+      onclone: (clonedDoc, clonedEl) => {
+        const tw = clonedDoc.getElementById('tradingview_widget');
+        if (tw) {
+          tw.innerHTML = '';
+          const placeholder = clonedDoc.createElement('div');
+          placeholder.style.cssText = 'display:flex;align-items:center;justify-content:center;height:300px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.15);border-radius:12px;color:rgba(255,255,255,0.5);font-size:0.85rem;';
+          placeholder.textContent = 'Price Chart (TradingView — view live in app)';
+          tw.appendChild(placeholder);
+        }
+        clonedEl.querySelectorAll?.('iframe').forEach((frame) => frame.remove());
+      },
+    });
+    const imgData = canvas.toDataURL('image/png');
+    if (!imgData || imgData === 'data:,') return null;
+    return { canvas, imgData };
+  };
+
   const handleExportPDF = async () => {
     const el = document.getElementById('calculator-result-export');
     if (!el || !result) return;
 
     try {
-      const scale = 1.5;
-      const exportRect = el.getBoundingClientRect();
-      const breakPoints = new Set<number>([0]);
-      const addRects = (nodes: NodeListOf<Element>) => {
-        nodes.forEach((node) => {
-          const r = node.getBoundingClientRect();
-          const topPx = r.top - exportRect.top;
-          const bottomPx = r.bottom - exportRect.top;
-          if (topPx > 0) breakPoints.add(Math.round(topPx * scale));
-          if (bottomPx > 0) breakPoints.add(Math.round(bottomPx * scale));
-        });
-      };
-      addRects(el.querySelectorAll('.compact-card, .broker-summary-card, .keystats-card, .compact-style-card, .glass-card-static, .broker-flow-card, .glass-card'));
-      addRects(el.querySelectorAll(':scope > div'));
-      const sortedBreaks = Array.from(breakPoints).sort((a, b) => a - b);
-
-      const canvas = await html2canvas(el, {
-        scale,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#0f0f17',
-        allowTaint: false,
-        foreignObjectRendering: false,
-        ignoreElements: (node) => {
-          if (node instanceof HTMLIFrameElement) return true;
-          if (node instanceof HTMLScriptElement) return true;
-          return false;
-        },
-        onclone: (clonedDoc, clonedEl) => {
-          const tw = clonedDoc.getElementById('tradingview_widget');
-          if (tw) {
-            tw.innerHTML = '';
-            const placeholder = clonedDoc.createElement('div');
-            placeholder.style.cssText = 'display:flex;align-items:center;justify-content:center;height:300px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.15);border-radius:12px;color:rgba(255,255,255,0.5);font-size:0.85rem;';
-            placeholder.textContent = 'Price Chart (TradingView — view live in app)';
-            tw.appendChild(placeholder);
-          }
-          clonedEl.querySelectorAll?.('iframe').forEach((frame) => frame.remove());
-        },
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      if (!imgData || imgData === 'data:,') {
-        throw new Error('Canvas export returned empty data (possible CORS/taint)');
-      }
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -565,35 +552,33 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
       doc.setFontSize(8);
       doc.text('Disclaimer: Not financial advice. Past performance does not guarantee future results.', margin, pageHeight - 15);
 
-      // Content pages - split at card boundaries (never cut a card in half)
-      const imgWidth = contentWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const pxToMm = imgHeight / canvas.height;
-
-      const breakMm = sortedBreaks.map((bp) => bp * pxToMm);
-      let yStartMm = 0;
-
-      while (yStartMm < imgHeight) {
-        const maxYEndMm = Math.min(yStartMm + contentHeight, imgHeight);
-
-        let yEndMm = yStartMm;
-        for (const bp of breakMm) {
-          if (bp > yStartMm && bp <= maxYEndMm) {
-            yEndMm = Math.max(yEndMm, bp);
-          }
-        }
-        if (yEndMm <= yStartMm) {
-          yEndMm = maxYEndMm;
-        }
-
+      const addImageToPage = (imgData: string, canvas: HTMLCanvasElement) => {
         doc.addPage();
         doc.setFillColor(15, 15, 23);
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        const w = contentWidth;
+        const h = contentHeight;
+        const scaleW = w / canvas.width;
+        const scaleH = h / canvas.height;
+        const scale = Math.min(scaleW, scaleH);
+        const fitWidth = canvas.width * scale;
+        const fitHeight = canvas.height * scale;
+        const x = margin + (w - fitWidth) / 2;
+        const y = margin + (h - fitHeight) / 2;
+        doc.addImage(imgData, 'PNG', x, y, fitWidth, fitHeight);
+      };
 
-        doc.addImage(imgData, 'PNG', margin, margin - yStartMm, imgWidth, imgHeight);
+      const page2 = await captureSection('pdf-page-2');
+      if (page2) addImageToPage(page2.imgData, page2.canvas);
 
-        yStartMm = yEndMm;
-      }
+      const page3 = await captureSection('pdf-page-3');
+      if (page3) addImageToPage(page3.imgData, page3.canvas);
+
+      const page4 = await captureSection('pdf-page-4');
+      if (page4) addImageToPage(page4.imgData, page4.canvas);
+
+      const page5 = await captureSection('pdf-page-5');
+      if (page5) addImageToPage(page5.imgData, page5.canvas);
 
       // Add page numbers and footer to all pages
       const totalPages = doc.getNumberOfPages();
@@ -658,32 +643,31 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
 
       {result && (
         <div style={{ marginTop: '2rem' }} id="calculator-result-export">
-          {result.isFromHistory && result.historyDate && (
-            <div style={{
-              marginBottom: '1.5rem',
-              padding: '1rem',
-              background: 'rgba(255, 193, 7, 0.1)',
-              border: '1px solid rgba(255, 193, 7, 0.3)',
-              borderRadius: '12px',
-              color: '#ffc107',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              fontSize: '0.9rem'
-            }}>
-              <span style={{ fontSize: '1.2rem' }}>⚠️</span>
-              <div>
-                Data broker live tidak tersedia. Menampilkan data history terakhir dari tanggal
-                <strong style={{ marginLeft: '4px', color: '#ffca2c' }}>
-                  {new Date(result.historyDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </strong>
+          {/* PDF Page 2: Adimology, Broker Summary, KeyStats, Corp Actions, Technical, Trading Plan */}
+          <div id="pdf-page-2" style={{ marginBottom: '2rem' }}>
+            {result.isFromHistory && result.historyDate && (
+              <div style={{
+                marginBottom: '1.5rem',
+                padding: '1rem',
+                background: 'rgba(255, 193, 7, 0.1)',
+                border: '1px solid rgba(255, 193, 7, 0.3)',
+                borderRadius: '12px',
+                color: '#ffc107',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                fontSize: '0.9rem'
+              }}>
+                <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+                <div>
+                  Data broker live tidak tersedia. Menampilkan data history terakhir dari tanggal
+                  <strong style={{ marginLeft: '4px', color: '#ffca2c' }}>
+                    {new Date(result.historyDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </strong>
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Side-by-side Cards Container */}
-          <div className="cards-row">
-            {/* Left Column: Compact Result */}
+            )}
+            <div className="cards-row" style={{ marginBottom: 0 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div id="compact-result-card-container">
                 <CompactResultCard
@@ -753,7 +737,11 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
                 />
               )}
             </div>
+            </div>
+          </div>
 
+          {/* PDF Page 3: Riwayat Analisis, Advanced Chart, Broker Flow */}
+          <div id="pdf-page-3" style={{ width: '100%', marginBottom: '2rem' }}>
             {/* Emiten History Card - Full Width */}
             <div style={{
               gridColumn: '1 / -1',
@@ -762,7 +750,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
               <EmitenHistoryCard emiten={result.input.emiten} />
             </div>
 
-            {/* Price Graph + Broker Flow Section */}
+            {/* Price Graph + Broker Flow */}
             <div style={{
               gridColumn: '1 / -1',
               width: '100%',
@@ -778,25 +766,29 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
                 <BrokerFlowCard emiten={result.input.emiten} />
               </div>
             </div>
+          </div>
 
-            {/* Agent Story + BrakotBrekot Section - Full Width */}
-            <div style={{ gridColumn: '1 / -1', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {(agentStories.length > 0 || storyStatus !== 'idle') && (
-                <AgentStoryCard
+          {/* PDF Page 4: AI Story Analysis */}
+          {(agentStories.length > 0 || storyStatus !== 'idle') && (
+            <div id="pdf-page-4" style={{ width: '100%', marginBottom: '2rem' }}>
+              <AgentStoryCard
                   stories={agentStories}
                   status={storyStatus}
                   onRetry={() => handleAnalyzeStory()}
                 />
-              )}
-              {(brakotbrekotAnalyses.length > 0 || brakotbrekotStatus !== 'idle') && (
-                <BrakotBrekotCard
+            </div>
+          )}
+
+          {/* PDF Page 5: BrakotBrekot */}
+          {(brakotbrekotAnalyses.length > 0 || brakotbrekotStatus !== 'idle') && (
+            <div id="pdf-page-5" style={{ width: '100%' }}>
+              <BrakotBrekotCard
                   analyses={brakotbrekotAnalyses}
                   status={brakotbrekotStatus}
                   onRetry={() => handleAnalyzeBrakotBrekot()}
                 />
-              )}
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
