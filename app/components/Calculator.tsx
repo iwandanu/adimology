@@ -463,13 +463,34 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
 
     try {
       const canvas = await html2canvas(el, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         logging: false,
         backgroundColor: '#0f0f17',
+        allowTaint: false,
+        foreignObjectRendering: false,
+        ignoreElements: (node) => {
+          if (node instanceof HTMLIFrameElement) return true;
+          if (node instanceof HTMLScriptElement) return true;
+          return false;
+        },
+        onclone: (clonedDoc, clonedEl) => {
+          const tw = clonedDoc.getElementById('tradingview_widget');
+          if (tw) {
+            tw.innerHTML = '';
+            const placeholder = clonedDoc.createElement('div');
+            placeholder.style.cssText = 'display:flex;align-items:center;justify-content:center;height:300px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.15);border-radius:12px;color:rgba(255,255,255,0.5);font-size:0.85rem;';
+            placeholder.textContent = 'Price Chart (TradingView — view live in app)';
+            tw.appendChild(placeholder);
+          }
+          clonedEl.querySelectorAll?.('iframe').forEach((frame) => frame.remove());
+        },
       });
 
       const imgData = canvas.toDataURL('image/png');
+      if (!imgData || imgData === 'data:,') {
+        throw new Error('Canvas export returned empty data (possible CORS/taint)');
+      }
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -562,7 +583,8 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
       doc.save(`Research-Report-${result.input.emiten}-${timestamp}.pdf`);
     } catch (err) {
       console.error('Failed to export PDF:', err);
-      setError('Failed to export PDF. Please try again.');
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Export PDF gagal: ${msg.includes('taint') || msg.includes('CORS') ? 'Konten chart/iframe tidak bisa di-capture. Coba sembunyikan grafik TradingView dulu.' : msg}`);
     }
   };
 
