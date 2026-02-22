@@ -16,6 +16,13 @@
 
 ## Changelog
 
+### v0.3.3 (2026-02-22)
+- **Password Protection**: Implementasi sistem keamanan akses aplikasi dengan proteksi password yang disimpan secara aman di database.
+- **Session-based Unlocking**: Mekanisme akses satu kali per sesi (session storage) untuk kenyamanan pengguna tanpa mengurangi keamanan.
+- **Adaptive UI & Themes**: Antarmuka modal dan layar kunci yang mendukung penuh Mode Terang (Light Theme) dan Mode Gelap (Dark Mode).
+- **Security UX & Consistency**: Peningkatan keterbacaan notifikasi, animasi transisi yang halus, dan sinkronisasi gaya visual tombol dengan elemen utama aplikasi.
+- **Reset Documentation**: Menambahkan panduan pemulihan akses melalui Supabase jika lupa password.
+
 ### v0.3.2 (2026-02-22)
 - **Local Watchlist & Normalization**: Mengalihkan penyimpanan data watchlist dari Stockbit API ke database lokal (cache-first) dengan struktur database yang lebih efisien.
 - **Status Indicator UI**: Pembaruan indikator status token dengan warna **Orange** untuk status "Expiring", serta pemindahan indikator proses fetching stockbit ke Navbar untuk mencegah *layout shifting*.
@@ -62,6 +69,7 @@
 - **AI Story Analysis**: Analisis berita dan sentimen pasar menggunakan AI (Gemini) untuk merangkum story, SWOT, dan katalis emiten secara instan.
 - **Multi-Version Analysis**: Menyimpan dan menampilkan riwayat analisis AI sebelumnya sehingga Anda bisa melacak perubahan narasi pasar dari waktu ke waktu.
 - **Export to PDF**: Unduh laporan riwayat analisis dalam format PDF yang rapi.
+- **Password Protection**: Proteksi keamanan akses aplikasi untuk menjaga privasi data dan token sesi Anda.
 
 ---
 
