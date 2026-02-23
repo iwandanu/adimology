@@ -41,7 +41,7 @@ async function sendTelegramDocument(chatId: number, pdfBuffer: Uint8Array, filen
   const formData = new FormData();
   formData.append('chat_id', String(chatId));
   formData.append('caption', `📄 Research Report ${filename.replace('.pdf', '')}`);
-  formData.append('document', new Blob([pdfBuffer], { type: 'application/pdf' }), filename);
+  formData.append('document', new Blob([pdfBuffer as BlobPart], { type: 'application/pdf' }), filename);
 
   await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
     method: 'POST',
