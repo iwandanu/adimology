@@ -246,5 +246,5 @@ export function generateFullReportPDF(
   doc.setTextColor(120, 120, 130);
   doc.text('twitter @iwandanu', pageWidth - margin, pageHeight - 10, { align: 'right' });
 
-  return doc.output('arraybuffer') as Uint8Array;
+  return new Uint8Array(doc.output('arraybuffer') as ArrayBuffer);
 }
