@@ -481,7 +481,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     const el = document.getElementById(id);
     if (!el) return null;
     const canvas = await html2canvas(el, {
-      scale: 1.5,
+      scale: 1.0,
       useCORS: true,
       logging: false,
       backgroundColor: '#0f0f17',
@@ -504,7 +504,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         clonedEl.querySelectorAll?.('iframe').forEach((frame) => frame.remove());
       },
     });
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL('image/jpeg', 0.82);
     if (!imgData || imgData === 'data:,') return null;
     return { canvas, imgData };
   };
@@ -580,7 +580,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         const fitHeight = canvas.height * scale;
         const x = margin + (w - fitWidth) / 2;
         const y = margin + (h - fitHeight) / 2;
-        doc.addImage(imgData, 'PNG', x, y, fitWidth, fitHeight);
+        doc.addImage(imgData, 'JPEG', x, y, fitWidth, fitHeight, undefined, 'FAST');
       };
 
       const page2 = await captureSection('pdf-page-2');

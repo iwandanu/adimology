@@ -174,3 +174,101 @@ export async function fetchTradingSummary(params?: {
   const list = (raw.data ?? raw.results ?? []) as OHLCTradingSummary[];
   return Array.isArray(list) ? list : [];
 }
+
+function extractTradingRows(raw: unknown): OHLCTradingSummary[] {
+  if (Array.isArray(raw)) return raw as OHLCTradingSummary[];
+  const obj = raw as Record<string, unknown>;
+  const data = obj?.data ?? obj?.results ?? obj?.result;
+  if (Array.isArray(data)) return data as OHLCTradingSummary[];
+  const inner = data as Record<string, unknown> | undefined;
+  if (inner?.result && Array.isArray(inner.result))
+    return inner.result as OHLCTradingSummary[];
+  return [];
+}
+
+/**
+ * Fetch stock-summary per date (per-stock OHLC). Uses /trading/stock-summary
+ * which works for most RapidAPI plans. Use for historical screening.
+ */
+async function fetchStockSummary(params: {
+  date: string;
+  length?: number;
+}): Promise<OHLCTradingSummary[]> {
+  const q: Record<string, string | number> = { date: params.date };
+  if (params.length != null) q.length = params.length;
+
+  const raw = await fetchOHLC<unknown>('/trading/stock-summary', q);
+  return raw ? extractTradingRows(raw) : [];
+}
+
+/** OHLCData format compatible with technical analysis */
+export interface OHLCDataRow {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+}
+
+/**
+ * Fetch historical OHLC for screening. Builds a map of stockCode -> OHLCData[]
+ * by fetching trading summary for the last N trading days.
+ * Requires OHLC_DEV_API_KEY. Returns empty map on failure.
+ */
+export async function fetchOHLCHistoricalMap(
+  daysBack: number = 120
+): Promise<Map<string, OHLCDataRow[]>> {
+  const map = new Map<string, OHLCDataRow[]>();
+  const key = getApiKey();
+  if (!key) return map;
+
+  const dates: string[] = [];
+  const d = new Date();
+  let count = 0;
+  while (count < daysBack) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const yyyymmdd = `${y}${m}${day}`;
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) {
+      dates.push(yyyymmdd);
+      count++;
+    }
+    d.setDate(d.getDate() - 1);
+  }
+
+  for (const date of dates) {
+    const rows = await fetchStockSummary({ date, length: 3000 });
+    for (const row of rows) {
+      const code = String(row.stockCode ?? row.code ?? '').trim().toUpperCase();
+      if (
+        !code ||
+        typeof row.open !== 'number' ||
+        typeof row.high !== 'number' ||
+        typeof row.low !== 'number' ||
+        typeof row.close !== 'number'
+      )
+        continue;
+      const dateStr = row.date ?? `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+      const item: OHLCDataRow = {
+        date: dateStr,
+        open: row.open,
+        high: row.high,
+        low: row.low,
+        close: row.close,
+        volume: typeof row.volume === 'number' ? row.volume : undefined,
+      };
+      const list = map.get(code) ?? [];
+      list.push(item);
+      map.set(code, list);
+    }
+    await new Promise((r) => setTimeout(r, 1100)); // ~1 req/sec to respect RapidAPI limit
+  }
+
+  for (const [, list] of map) {
+    list.sort((a, b) => a.date.localeCompare(b.date));
+  }
+  return map;
+}

@@ -6,6 +6,7 @@ import {
   isOHLCConfigured,
   fetchConstituents,
   fetchSecurities,
+  fetchOHLCHistoricalMap,
 } from '@/lib/ohlcDev';
 
 async function resolveUniverseTickers(universe: string): Promise<string[]> {
@@ -57,7 +58,22 @@ export async function GET(request: NextRequest) {
 
     const tickers = await resolveUniverseTickers(universe);
 
-    const results = await runScreener(tickers, preset);
+    let ohlcMap: Awaited<ReturnType<typeof fetchOHLCHistoricalMap>> | undefined;
+    if (isOHLCConfigured()) {
+      try {
+        const map = await fetchOHLCHistoricalMap(60);
+        // Use OHLC map only if it has sufficient data; otherwise fall back to Yahoo
+        if (map.size >= 5) {
+          ohlcMap = map;
+        } else {
+          console.warn(`[Screen] OHLC map has ${map.size} stocks, falling back to Yahoo`);
+        }
+      } catch (e) {
+        console.warn('[Screen] OHLC historical fetch failed, falling back to Yahoo:', e);
+      }
+    }
+
+    const results = await runScreener(tickers, preset, undefined, ohlcMap);
 
     return NextResponse.json({
       success: true,

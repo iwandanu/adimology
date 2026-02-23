@@ -1,10 +1,11 @@
 /**
  * Stock Screener - Filter stocks by technical/fundamental criteria
- * Uses Yahoo Finance for OHLC data (no auth required, reliable)
+ * Data sources: OHLC.dev (when configured) or Yahoo Finance
  */
 
 import { fetchYahooHistorical } from './yahooFinance';
 import { analyzeTechnical, type OHLCData, type TechnicalAnalysisResult } from './technical';
+import type { OHLCDataRow } from './ohlcDev';
 
 export type ScreenerPreset =
   | 'oversold'
@@ -60,14 +61,30 @@ const PRESET_CRITERIA: Record<ScreenerPreset, (ta: TechnicalAnalysisResult) => b
 
 export async function screenStock(
   emiten: string,
-  preset: ScreenerPreset
+  preset: ScreenerPreset,
+  ohlcMap?: Map<string, OHLCDataRow[]>
 ): Promise<ScreenedStock | null> {
   try {
-    const data = await fetchYahooHistorical(emiten, 120);
+    let data: OHLCData[];
 
-    if (!data || data.length < 35) return null;
+    if (ohlcMap) {
+      const rows = ohlcMap.get(emiten.toUpperCase());
+      if (!rows || rows.length < 35) return null;
+      data = rows.map((r) => ({
+        date: r.date,
+        open: r.open,
+        high: r.high,
+        low: r.low,
+        close: r.close,
+        volume: r.volume,
+      }));
+    } else {
+      const yahoo = await fetchYahooHistorical(emiten, 120);
+      if (!yahoo || yahoo.length < 35) return null;
+      data = yahoo;
+    }
 
-    // Yahoo returns chronological (oldest first) - technical analysis expects this
+    // Data is chronological (oldest first) - technical analysis expects this
     const ta = analyzeTechnical(data);
 
     if (!PRESET_CRITERIA[preset](ta)) return null;
@@ -95,17 +112,18 @@ export async function screenStock(
 export async function runScreener(
   tickers: string[],
   preset: ScreenerPreset,
-  onProgress?: (done: number, total: number) => void
+  onProgress?: (done: number, total: number) => void,
+  ohlcMap?: Map<string, OHLCDataRow[]>
 ): Promise<ScreenedStock[]> {
   const results: ScreenedStock[] = [];
   const total = tickers.length;
 
   for (let i = 0; i < tickers.length; i++) {
     onProgress?.(i + 1, total);
-    const r = await screenStock(tickers[i], preset);
+    const r = await screenStock(tickers[i], preset, ohlcMap);
     if (r) results.push(r);
 
-    if (i < tickers.length - 1) {
+    if (!ohlcMap && i < tickers.length - 1) {
       await new Promise((r) => setTimeout(r, 100));
     }
   }
