@@ -263,6 +263,7 @@ export default async (req: Request) => {
           '/screen [preset] — Stock screener\n' +
           '/story EMITEN — Analisis AI\n' +
           '/result EMITEN — Hasil analisis AI\n' +
+          '/pdf EMITEN — Laporan PDF lengkap (Adimology + Story + BrakotBrekot)\n' +
           '/help — Bantuan'
       );
       return new Response('OK', { status: 200 });
@@ -278,7 +279,8 @@ export default async (req: Request) => {
           '/bandar EMITEN [days] — Analisis broker flow multi-hari\n' +
           '/screen [oversold|bullish|...] — Screener (bisa 1–2 menit)\n' +
           '/story EMITEN — AI Story (1–2 menit)\n' +
-          '/result EMITEN — Hasil AI Story'
+          '/result EMITEN — Hasil AI Story\n' +
+          '/pdf EMITEN — Laporan PDF lengkap (otomatis: Adimology + Story + BrakotBrekot, 2–5 menit)'
       );
       return new Response('OK', { status: 200 });
     }
@@ -572,6 +574,39 @@ export default async (req: Request) => {
       } catch (err) {
         console.error('[Telegram] screen error:', err);
         await sendTelegramMessage(chatId, `❌ ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+      return new Response('OK', { status: 200 });
+    }
+
+    if (cmd === '/pdf') {
+      if (!emiten || emiten.length > 4) {
+        await sendTelegramMessage(
+          chatId,
+          '❌ Format: /pdf EMITEN (contoh: /pdf BBCA)\n\n' +
+            'Bot akan otomatis menjalankan Adimology, Story, dan BrakotBrekot lalu mengirim PDF. Proses 2–5 menit.'
+        );
+        return new Response('OK', { status: 200 });
+      }
+
+      try {
+        const functionsUrl = `${apiBase}/.netlify/functions`;
+        fetch(
+          `${functionsUrl}/generate-pdf-report-background?emiten=${emiten}&chat_id=${chatId}`,
+          { method: 'POST' }
+        ).catch((err) => console.error('[Telegram] PDF background trigger failed:', err));
+
+        await sendTelegramMessage(
+          chatId,
+          `⏳ PDF report untuk <b>${emiten}</b> sedang dibuat.\n\n` +
+            'Otomatis menjalankan: Adimology → Story AI → BrakotBrekot.\n' +
+            'Estimasi 2–5 menit. PDF akan dikirim ke chat ini saat selesai.'
+        );
+      } catch (err) {
+        console.error('[Telegram] pdf trigger error:', err);
+        await sendTelegramMessage(
+          chatId,
+          `❌ Gagal memulai PDF: ${err instanceof Error ? err.message : 'Unknown error'}`
+        );
       }
       return new Response('OK', { status: 200 });
     }
