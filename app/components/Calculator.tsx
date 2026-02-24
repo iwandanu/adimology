@@ -732,21 +732,16 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
             )}
 
             {/* Corporate Actions | Technical Analysis | Trading Plan — 3 cards in one row, 1/3 each */}
+            {/* Row 1: Technical + Trading Plan */}
             <div
               style={{
                 width: '100%',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
                 gap: '1.5rem',
+                marginBottom: '1.5rem',
               }}
             >
-              {(corporateActionsData || corporateActionsLoading) && (
-                <CorporateActionsCard
-                  emiten={result.input.emiten}
-                  data={corporateActionsData}
-                  loading={corporateActionsLoading}
-                />
-              )}
               {(technicalData || technicalLoading) && (
                 <TechnicalAnalysisCard
                   emiten={result.input.emiten}
@@ -779,14 +774,41 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
                   loading={planLoading}
                 />
               )}
+            </div>
+
+            {/* Row 2: Corporate Actions + Trading Plan (alternative by Datasaham.io) */}
+            <div
+              style={{
+                width: '100%',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                gap: '1.5rem',
+              }}
+            >
+              {(corporateActionsData || corporateActionsLoading) && (
+                <CorporateActionsCard
+                  emiten={result.input.emiten}
+                  data={corporateActionsData}
+                  loading={corporateActionsLoading}
+                />
+              )}
               {(riskRewardData || riskRewardLoading) && (
                 <div className="glass-card">
-                  <h3 style={{ marginBottom: '0.5rem' }}>Risk-Reward (Datasaham)</h3>
+                  <h3 style={{ marginBottom: '0.75rem' }}>
+                    Trading Plan (alternative by Datasaham.io)
+                  </h3>
                   {riskRewardLoading && (
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Loading...</p>
                   )}
                   {riskRewardData && !riskRewardLoading && (
-                    <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.4rem',
+                      }}
+                    >
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ color: 'var(--text-secondary)' }}>Harga sekarang</span>
                         <span style={{ fontWeight: 600 }}>

@@ -10,7 +10,7 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const symbol = searchParams.get('symbol');
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
-  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   useEffect(() => {
     if (symbol) {
