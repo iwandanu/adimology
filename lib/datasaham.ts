@@ -1,0 +1,221 @@
+/**
+ * Datasaham.io IDX API client (Indonesia Stock Exchange)
+ * Uses x-api-key header. Set DATASAHAM_API_KEY (or legacy OHLC_DEV_API_KEY) in env.
+ * Docs: `https://api.datasaham.io/swagger`
+ */
+
+const DATASAHAM_BASE = 'https://api.datasaham.io';
+
+function getApiKey(): string | undefined {
+  return process.env.DATASAHAM_API_KEY ?? process.env.OHLC_DEV_API_KEY;
+}
+
+async function fetchDatasaham<T>(
+  path: string,
+  params?: Record<string, string | number>
+): Promise<T | null> {
+  const key = getApiKey();
+  if (!key) return null;
+
+  const url = new URL(path, DATASAHAM_BASE);
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      url.searchParams.set(k, String(v));
+    }
+  }
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: {
+        'x-api-key': key,
+      },
+    });
+
+    if (!res.ok) {
+      console.warn(`[Datasaham] ${path} returned ${res.status}`);
+      return null;
+    }
+
+    return (await res.json()) as T;
+  } catch (e) {
+    console.warn('[Datasaham] fetch error:', e);
+    return null;
+  }
+}
+
+/** Check if Datasaham API is configured */
+export function isDatasahamConfigured(): boolean {
+  return !!getApiKey();
+}
+
+/** OHLC row format compatible with technical analysis */
+export interface OHLCDataRow {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+}
+
+type UnknownRecord = Record<string, unknown>;
+
+function extractCandles(raw: unknown): UnknownRecord[] {
+  if (Array.isArray(raw)) {
+    return raw as UnknownRecord[];
+  }
+
+  if (!raw || typeof raw !== 'object') {
+    return [];
+  }
+
+  const obj = raw as UnknownRecord;
+
+  if (Array.isArray(obj.data)) {
+    return obj.data as UnknownRecord[];
+  }
+
+  if (Array.isArray(obj.result)) {
+    return obj.result as UnknownRecord[];
+  }
+
+  if (Array.isArray(obj.candles)) {
+    return obj.candles as UnknownRecord[];
+  }
+
+  const data = obj.data as UnknownRecord | undefined;
+  if (data) {
+    for (const value of Object.values(data)) {
+      if (
+        Array.isArray(value) &&
+        value.length > 0 &&
+        typeof value[0] === 'object'
+      ) {
+        const first = value[0] as UnknownRecord;
+        if (
+          'open' in first &&
+          'high' in first &&
+          'low' in first &&
+          'close' in first
+        ) {
+          return value as UnknownRecord[];
+        }
+      }
+    }
+  }
+
+  return [];
+}
+
+function normalizeDate(candle: UnknownRecord): string | null {
+  const dateLike =
+    (candle.date as string | undefined) ??
+    (candle.time as string | undefined) ??
+    (candle.timestamp as string | undefined);
+
+  if (dateLike && typeof dateLike === 'string') {
+    // Assume YYYY-MM-DD or ISO date-like string
+    if (dateLike.length >= 10) {
+      return dateLike.slice(0, 10);
+    }
+    return dateLike;
+  }
+
+  const epoch =
+    (candle.time as number | undefined) ??
+    (candle.timestamp as number | undefined);
+  if (typeof epoch === 'number' && Number.isFinite(epoch)) {
+    const ms = epoch > 1e12 ? epoch : epoch * 1000;
+    return new Date(ms).toISOString().slice(0, 10);
+  }
+
+  return null;
+}
+
+/**
+ * Fetch historical OHLC for screening using Datasaham chart endpoint.
+ * Builds a map of stockCode -> OHLCDataRow[].
+ *
+ * NOTE: This function is intentionally defensive about response shape:
+ * it looks for arrays under common keys and for objects with open/high/low/close.
+ */
+export async function fetchDatasahamHistoricalMap(
+  tickers: string[],
+  daysBack: number = 120
+): Promise<Map<string, OHLCDataRow[]>> {
+  const map = new Map<string, OHLCDataRow[]>();
+  const key = getApiKey();
+  if (!key || tickers.length === 0) return map;
+
+  const limit = Math.max(30, Math.min(daysBack, 365));
+
+  for (const rawSymbol of tickers) {
+    const symbol = rawSymbol.trim().toUpperCase();
+    if (!symbol) continue;
+
+    // Use daily timeframe for screening
+    const raw = await fetchDatasaham<unknown>(
+      `/api/chart/${encodeURIComponent(symbol)}/daily`,
+      { limit }
+    );
+
+    if (!raw) continue;
+
+    const candles = extractCandles(raw);
+    if (!candles.length) continue;
+
+    const rows: OHLCDataRow[] = [];
+
+    for (const c of candles) {
+      if (!c || typeof c !== 'object') continue;
+
+      const rec = c as UnknownRecord;
+      const date = normalizeDate(rec);
+      const open = Number(rec.open);
+      const high = Number(rec.high);
+      const low = Number(rec.low);
+      const close = Number(rec.close);
+
+      if (
+        !date ||
+        !Number.isFinite(open) ||
+        !Number.isFinite(high) ||
+        !Number.isFinite(low) ||
+        !Number.isFinite(close)
+      ) {
+        continue;
+      }
+
+      const volumeRaw = rec.volume ?? rec.vol;
+      const volumeNumber =
+        typeof volumeRaw === 'number'
+          ? volumeRaw
+          : typeof volumeRaw === 'string'
+          ? Number(volumeRaw.replace(/,/g, ''))
+          : undefined;
+
+      rows.push({
+        date,
+        open,
+        high,
+        low,
+        close,
+        volume:
+          typeof volumeNumber === 'number' && Number.isFinite(volumeNumber)
+            ? volumeNumber
+            : undefined,
+      });
+    }
+
+    if (!rows.length) continue;
+
+    rows.sort((a, b) => a.date.localeCompare(b.date));
+    map.set(symbol, rows.slice(-daysBack));
+
+    // Basic rate limiting to be friendly to the API
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+
+  return map;
+}
+

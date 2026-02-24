@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runScreener } from '@/lib/screener';
 import type { ScreenerPreset } from '@/lib/screener';
 import { UNIVERSES } from '@/lib/universes';
+import { isOHLCConfigured, fetchConstituents, fetchSecurities } from '@/lib/ohlcDev';
 import {
-  isOHLCConfigured,
-  fetchConstituents,
-  fetchSecurities,
-  fetchOHLCHistoricalMap,
-} from '@/lib/ohlcDev';
+  isDatasahamConfigured,
+  fetchDatasahamHistoricalMap,
+  type OHLCDataRow,
+} from '@/lib/datasaham';
 
 async function resolveUniverseTickers(universe: string): Promise<string[]> {
   const fallback = UNIVERSES[universe] ?? UNIVERSES.lq45;
@@ -58,18 +58,24 @@ export async function GET(request: NextRequest) {
 
     const tickers = await resolveUniverseTickers(universe);
 
-    let ohlcMap: Awaited<ReturnType<typeof fetchOHLCHistoricalMap>> | undefined;
-    if (isOHLCConfigured()) {
+    let ohlcMap: Map<string, OHLCDataRow[]> | undefined;
+
+    if (isDatasahamConfigured()) {
       try {
-        const map = await fetchOHLCHistoricalMap(60);
-        // Use OHLC map only if it has sufficient data; otherwise fall back to Yahoo
+        const map = await fetchDatasahamHistoricalMap(tickers, 60);
+        // Use Datasaham map only if it has sufficient data; otherwise fall back to Yahoo
         if (map.size >= 5) {
           ohlcMap = map;
         } else {
-          console.warn(`[Screen] OHLC map has ${map.size} stocks, falling back to Yahoo`);
+          console.warn(
+            `[Screen] Datasaham map has ${map.size} stocks, falling back to Yahoo`
+          );
         }
       } catch (e) {
-        console.warn('[Screen] OHLC historical fetch failed, falling back to Yahoo:', e);
+        console.warn(
+          '[Screen] Datasaham historical fetch failed, falling back to Yahoo:',
+          e
+        );
       }
     }
 

@@ -5,7 +5,7 @@
 
 import { fetchYahooHistorical } from './yahooFinance';
 import { analyzeTechnical, type OHLCData, type TechnicalAnalysisResult } from './technical';
-import type { OHLCDataRow } from './ohlcDev';
+import type { OHLCDataRow } from './datasaham';
 
 export type ScreenerPreset =
   | 'oversold'
