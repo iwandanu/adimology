@@ -15,7 +15,8 @@ export type ScreenerPreset =
   | 'breakout'
   | 'momentum'
   | 'undervalued'
-  | 'rsi_extreme';
+  | 'rsi_extreme'
+  | 'sma_tight_stack';
 
 export interface ScreenerCriteria {
   rsiMin?: number;
@@ -57,6 +58,41 @@ const PRESET_CRITERIA: Record<ScreenerPreset, (ta: TechnicalAnalysisResult) => b
   undervalued: (ta) => ta.rsiSignal === 'oversold' || (ta.rsi ?? 99) < 40,
   rsi_extreme: (ta) =>
     (ta.rsi !== null && ta.rsi < 30) || (ta.rsi !== null && ta.rsi > 70),
+  sma_tight_stack: (ta) => {
+    const { sma5, sma10, sma20, sma50, sma100, sma200, lastClose } = ta;
+    if (
+      sma5 == null ||
+      sma10 == null ||
+      sma20 == null ||
+      sma50 == null ||
+      sma100 == null ||
+      sma200 == null ||
+      lastClose == null
+    ) {
+      return false;
+    }
+
+    const withinRange = (shorter: number, longer: number) => {
+      if (longer <= 0) return false;
+      const ratio = shorter / longer;
+      return ratio >= 1 && ratio <= 1.1;
+    };
+
+    const priceWithinRangeOfSma5 = () => {
+      if (sma5 <= 0) return false;
+      const ratio = lastClose / sma5;
+      return ratio >= 1 && ratio <= 1.1;
+    };
+
+    return (
+      withinRange(sma5, sma10) &&
+      withinRange(sma10, sma20) &&
+      withinRange(sma20, sma50) &&
+      withinRange(sma50, sma100) &&
+      withinRange(sma100, sma200) &&
+      priceWithinRangeOfSma5()
+    );
+  },
 };
 
 export async function screenStock(

@@ -166,9 +166,13 @@ export function findSupportResistance(data: OHLCData[], lookback: number = 20): 
 export interface TechnicalAnalysisResult {
   rsi: number | null;
   rsiSignal: 'oversold' | 'overbought' | 'neutral';
+  sma5: number | null;
+  sma10: number | null;
   sma20: number | null;
   sma50: number | null;
+  sma100: number | null;
   sma200: number | null;
+  lastClose: number | null;
   macd: { macd: number; signal: number; histogram: number } | null;
   macdSignal: 'bullish' | 'bearish' | 'neutral';
   bollinger: { upper: number; middle: number; lower: number; bandwidth: number } | null;
@@ -185,9 +189,13 @@ export function analyzeTechnical(data: OHLCData[]): TechnicalAnalysisResult {
   const result: TechnicalAnalysisResult = {
     rsi: null,
     rsiSignal: 'neutral',
+    sma5: null,
+    sma10: null,
     sma20: null,
     sma50: null,
+    sma100: null,
     sma200: null,
+    lastClose: null,
     macd: null,
     macdSignal: 'neutral',
     bollinger: null,
@@ -205,8 +213,11 @@ export function analyzeTechnical(data: OHLCData[]): TechnicalAnalysisResult {
     else if (result.rsi > 70) result.rsiSignal = 'overbought';
   }
 
+  result.sma5 = calculateSMA(closes, 5);
+  result.sma10 = calculateSMA(closes, 10);
   result.sma20 = calculateSMA(closes, 20);
   result.sma50 = calculateSMA(closes, 50);
+  result.sma100 = calculateSMA(closes, 100);
   result.sma200 = calculateSMA(closes, 200);
 
   result.macd = calculateMACD(closes);
@@ -217,6 +228,7 @@ export function analyzeTechnical(data: OHLCData[]): TechnicalAnalysisResult {
 
   result.bollinger = calculateBollinger(closes, 20, 2);
   const lastClose = closes[closes.length - 1];
+  result.lastClose = lastClose ?? null;
   if (result.bollinger && lastClose) {
     if (lastClose > result.bollinger.upper) result.priceVsBB = 'above';
     else if (lastClose < result.bollinger.lower) result.priceVsBB = 'below';
