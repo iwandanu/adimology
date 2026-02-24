@@ -12,6 +12,11 @@ const PRESETS = [
   { id: 'breakout', label: 'Breakout', desc: 'Dekat resistance + volume spike' },
   { id: 'undervalued', label: 'Undervalued', desc: 'RSI rendah, potensi value' },
   { id: 'rsi_extreme', label: 'RSI Extreme', desc: 'Oversold atau Overbought' },
+  {
+    id: 'sma_tight_stack',
+    label: 'SMA Tight Stack',
+    desc: 'SMA 5-200 rapat + harga sedikit di atas SMA5',
+  },
 ] as const;
 
 const UNIVERSES = [
