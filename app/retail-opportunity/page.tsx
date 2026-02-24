@@ -7,6 +7,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 // --- Types mapped roughly from api.datasaham.io/swagger ---
 
@@ -70,6 +71,7 @@ interface SectorRotationPayload {
 }
 
 export default function RetailOpportunityPage() {
+  const router = useRouter();
   const [multibagger, setMultibagger] = useState<MultibaggerPayload | null>(null);
   const [breakouts, setBreakouts] = useState<BreakoutPayload | null>(null);
   const [sectorRotation, setSectorRotation] = useState<SectorRotationPayload | null>(null);
@@ -203,7 +205,9 @@ export default function RetailOpportunityPage() {
                     borderRadius: '12px',
                     background: 'rgba(255,255,255,0.02)',
                     border: '1px solid var(--border-color)',
+                    cursor: 'pointer',
                   }}
+                  onClick={() => router.push(`/?symbol=${c.symbol}`)}
                 >
                   <div
                     style={{
@@ -354,6 +358,7 @@ export default function RetailOpportunityPage() {
                     background: 'rgba(255,255,255,0.02)',
                     border: '1px solid var(--border-color)',
                   }}
+                  onClick={() => router.push(`/?symbol=${a.symbol}`)}
                 >
                   <div
                     style={{

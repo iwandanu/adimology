@@ -234,8 +234,18 @@ export default function InputForm({
 
             <button
               type="button"
-              onClick={onAnalyzeAI}
-              disabled={storyStatus === 'pending' || storyStatus === 'processing' || !hasResult}
+              onClick={() => {
+                if (!hasResult) return;
+                onAnalyzeAI?.();
+                onAnalyzeBrakotBrekot?.();
+              }}
+              disabled={
+                !hasResult ||
+                storyStatus === 'pending' ||
+                storyStatus === 'processing' ||
+                brakotbrekotStatus === 'pending' ||
+                brakotbrekotStatus === 'processing'
+              }
               className="solid-btn"
               style={{
                 display: 'inline-flex',
@@ -256,10 +266,15 @@ export default function InputForm({
                 boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
               }}
             >
-              {storyStatus === 'pending' || storyStatus === 'processing' ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>⏳ Story...</span>
+              {storyStatus === 'pending' ||
+              storyStatus === 'processing' ||
+              brakotbrekotStatus === 'pending' ||
+              brakotbrekotStatus === 'processing' ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  ⏳ PandAi...
+                </span>
               ) : (
-                <>⭐ Analyze Story</>
+                <>🤖 PandAi - Panduan AI</>
               )}
             </button>
             <button
@@ -287,36 +302,6 @@ export default function InputForm({
               }}
             >
               📄 Export PDF
-            </button>
-            <button
-              type="button"
-              onClick={onAnalyzeBrakotBrekot}
-              disabled={brakotbrekotStatus === 'pending' || brakotbrekotStatus === 'processing' || !hasResult}
-              className="solid-btn"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.4rem',
-                padding: '0 1rem',
-                fontSize: '0.8rem',
-                fontWeight: '600',
-                borderRadius: '8px',
-                background: '#059669',
-                color: 'white',
-                border: '1px solid #059669',
-                cursor: 'pointer',
-                opacity: hasResult ? 1 : 0.5,
-                pointerEvents: hasResult ? 'auto' : 'none',
-                whiteSpace: 'nowrap',
-                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)'
-              }}
-            >
-              {brakotbrekotStatus === 'pending' || brakotbrekotStatus === 'processing' ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>⏳ BrakotBrekot...</span>
-              ) : (
-                <>📊 BrakotBrekot</>
-              )}
             </button>
           </div>
 
