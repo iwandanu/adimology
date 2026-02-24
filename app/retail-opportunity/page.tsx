@@ -52,23 +52,6 @@ interface BreakoutPayload {
   alerts: BreakoutAlert[];
 }
 
-interface RiskRewardTarget {
-  level: number;
-  probability: number;
-  reward: number;
-  risk_reward: number;
-}
-
-interface RiskRewardPayload {
-  symbol: string;
-  name: string;
-  current_price: number;
-  stop_loss_recommended: number;
-  target_prices: RiskRewardTarget[];
-  risk_reward_ratio: number;
-  recommendation: string;
-}
-
 interface SectorRotationSector {
   sector_id: string;
   sector_name: string;
@@ -89,13 +72,10 @@ interface SectorRotationPayload {
 export default function RetailOpportunityPage() {
   const [multibagger, setMultibagger] = useState<MultibaggerPayload | null>(null);
   const [breakouts, setBreakouts] = useState<BreakoutPayload | null>(null);
-  const [riskSymbol, setRiskSymbol] = useState('BBRI');
-  const [riskReward, setRiskReward] = useState<RiskRewardPayload | null>(null);
   const [sectorRotation, setSectorRotation] = useState<SectorRotationPayload | null>(null);
   const [loading, setLoading] = useState({
     multibagger: false,
     breakouts: false,
-    riskReward: false,
     sectorRotation: false,
   });
   const [error, setError] = useState<string | null>(null);
@@ -125,22 +105,6 @@ export default function RetailOpportunityPage() {
       setError(e instanceof Error ? e.message : 'Failed to load breakout alerts');
     } finally {
       setLoading((s) => ({ ...s, breakouts: false }));
-    }
-  };
-
-  const loadRiskReward = async () => {
-    if (!riskSymbol.trim()) return;
-    try {
-      setLoading((s) => ({ ...s, riskReward: true }));
-      const res = await fetch(`/api/retail/risk-reward?symbol=${encodeURIComponent(riskSymbol)}`);
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Failed to load risk-reward');
-      const payload = (json.data as { data?: RiskRewardPayload })?.data ?? json.data;
-      setRiskReward(payload as RiskRewardPayload);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load risk-reward');
-    } finally {
-      setLoading((s) => ({ ...s, riskReward: false }));
     }
   };
 
@@ -197,7 +161,16 @@ export default function RetailOpportunityPage() {
               type="button"
               onClick={loadMultibagger}
               disabled={loading.multibagger}
-              className="btn-primary"
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '999px',
+                border: '1px solid var(--border-color)',
+                background: 'rgba(255,255,255,0.02)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.75rem',
+                cursor: loading.multibagger ? 'default' : 'pointer',
+                opacity: loading.multibagger ? 0.6 : 1,
+              }}
             >
               {loading.multibagger ? 'Refreshing...' : 'Refresh'}
             </button>
@@ -213,43 +186,125 @@ export default function RetailOpportunityPage() {
           )}
 
           {multibagger && (
-            <div style={{ marginTop: '0.75rem', overflowX: 'auto' }}>
-              <table className="compact-table">
-                <thead>
-                  <tr>
-                    <th>Symbol</th>
-                    <th>Nama</th>
-                    <th>Score</th>
-                    <th>Return</th>
-                    <th>Timeframe</th>
-                    <th>Harga</th>
-                    <th>Entry Zone</th>
-                    <th>Risk</th>
-                    <th>Sektor</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {multibagger.candidates.map((c) => (
-                    <tr key={c.symbol}>
-                      <td>{c.symbol}</td>
-                      <td>{c.name}</td>
-                      <td>{c.multibagger_score}</td>
-                      <td>{c.potential_return}</td>
-                      <td>{c.timeframe}</td>
-                      <td>Rp {c.current_price.toLocaleString('id-ID')}</td>
-                      <td>
-                        {c.entry_zone
-                          ? `Rp ${c.entry_zone.ideal_price.toLocaleString(
-                              'id-ID'
-                            )} - Rp ${c.entry_zone.max_price.toLocaleString('id-ID')}`
-                          : '-'}
-                      </td>
-                      <td>{c.risk_level}</td>
-                      <td>{c.sector}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div
+              style={{
+                marginTop: '0.75rem',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '0.9rem',
+              }}
+            >
+              {multibagger.candidates.map((c) => (
+                <div
+                  key={c.symbol}
+                  className="glass-card"
+                  style={{
+                    padding: '0.9rem',
+                    borderRadius: '12px',
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid var(--border-color)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: '0.4rem',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{c.symbol}</div>
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          color: 'var(--text-muted)',
+                          marginTop: '2px',
+                        }}
+                      >
+                        {c.name}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div
+                        style={{
+                          fontSize: '0.7rem',
+                          padding: '2px 6px',
+                          borderRadius: '999px',
+                          background: 'rgba(124, 58, 237, 0.18)',
+                          color: 'var(--accent-primary)',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Score {c.multibagger_score}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.7rem',
+                          color: 'var(--text-muted)',
+                          marginTop: '4px',
+                        }}
+                      >
+                        {c.potential_return} • {c.timeframe}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '0.78rem',
+                      marginBottom: '0.3rem',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-secondary)' }}>Harga</span>
+                    <span style={{ fontWeight: 600 }}>
+                      Rp {c.current_price.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+
+                  {c.entry_zone && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '0.78rem',
+                        marginBottom: '0.3rem',
+                      }}
+                    >
+                      <span style={{ color: 'var(--text-secondary)' }}>Entry zone</span>
+                      <span style={{ fontWeight: 600 }}>
+                        Rp {c.entry_zone.ideal_price.toLocaleString('id-ID')} - Rp{' '}
+                        {c.entry_zone.max_price.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  )}
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '0.75rem',
+                      marginTop: '0.4rem',
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding: '2px 6px',
+                        borderRadius: '999px',
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        textTransform: 'capitalize',
+                      }}
+                    >
+                      {c.risk_level.toLowerCase()} risk
+                    </span>
+                    <span style={{ color: 'var(--text-muted)' }}>{c.sector}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -262,7 +317,16 @@ export default function RetailOpportunityPage() {
               type="button"
               onClick={loadBreakouts}
               disabled={loading.breakouts}
-              className="btn-primary"
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '999px',
+                border: '1px solid var(--border-color)',
+                background: 'rgba(255,255,255,0.02)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.75rem',
+                cursor: loading.breakouts ? 'default' : 'pointer',
+                opacity: loading.breakouts ? 0.6 : 1,
+              }}
             >
               {loading.breakouts ? 'Refreshing...' : 'Refresh'}
             </button>
@@ -272,144 +336,153 @@ export default function RetailOpportunityPage() {
           </p>
 
           {breakouts && (
-            <div style={{ marginTop: '0.75rem', overflowX: 'auto' }}>
-              <table className="compact-table">
-                <thead>
-                  <tr>
-                    <th>Symbol</th>
-                    <th>Nama</th>
-                    <th>Tipe</th>
-                    <th>Sev</th>
-                    <th>Harga</th>
-                    <th>Δ %</th>
-                    <th>Volume</th>
-                    <th>Vol vs Avg</th>
-                    <th>Prob.</th>
-                    <th>Aksi</th>
-                    <th>Target</th>
-                    <th>SL</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {breakouts.alerts.map((a) => (
-                    <tr key={`${a.symbol}-${a.alert_type}-${a.price}`}>
-                      <td>{a.symbol}</td>
-                      <td>{a.name}</td>
-                      <td>{a.alert_type.replace(/_/g, ' ')}</td>
-                      <td>{a.severity}</td>
-                      <td>Rp {a.price.toLocaleString('id-ID')}</td>
-                      <td>{a.change_percentage.toFixed(2)}</td>
-                      <td>{a.volume}</td>
-                      <td>{a.volume_vs_avg.toFixed(1)}x</td>
-                      <td>{a.breakout_probability}%</td>
-                      <td>{a.action}</td>
-                      <td>Rp {a.target.toLocaleString('id-ID')}</td>
-                      <td>Rp {a.stop_loss.toLocaleString('id-ID')}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Risk-Reward per symbol */}
-        <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: '1rem',
-              marginBottom: '0.75rem',
-            }}
-          >
-            <h3>Risk-Reward per Saham</h3>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <input
-                value={riskSymbol}
-                onChange={(e) => setRiskSymbol(e.target.value.toUpperCase())}
-                placeholder="Contoh: BBRI"
-                style={{
-                  padding: '0.4rem 0.6rem',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-secondary)',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.85rem',
-                  width: '110px',
-                  textTransform: 'uppercase',
-                }}
-              />
-              <button
-                type="button"
-                onClick={loadRiskReward}
-                disabled={loading.riskReward || !riskSymbol.trim()}
-                className="btn-primary"
-              >
-                {loading.riskReward ? 'Loading...' : 'Analyze'}
-              </button>
-            </div>
-          </div>
-
-          {riskReward && (
             <div
               style={{
+                marginTop: '0.75rem',
                 display: 'grid',
-                gap: '0.75rem',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '0.9rem',
               }}
             >
-              <div>
-                <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>Ringkasan</h4>
-                <p
+              {breakouts.alerts.map((a) => (
+                <div
+                  key={`${a.symbol}-${a.alert_type}-${a.price}`}
+                  className="glass-card"
                   style={{
-                    fontSize: '0.8rem',
-                    color: 'var(--text-muted)',
-                    marginBottom: '0.25rem',
+                    padding: '0.9rem',
+                    borderRadius: '12px',
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid var(--border-color)',
                   }}
                 >
-                  Harga sekarang: Rp {riskReward.current_price.toLocaleString('id-ID')}
-                </p>
-                <p
-                  style={{
-                    fontSize: '0.8rem',
-                    color: 'var(--text-muted)',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  Stop loss rekomendasi: Rp{' '}
-                  {riskReward.stop_loss_recommended.toLocaleString('id-ID')}
-                </p>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Risk/Reward ratio: {riskReward.risk_reward_ratio.toFixed(2)} (
-                  {riskReward.recommendation})
-                </p>
-              </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: '0.4rem',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{a.symbol}</div>
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          color: 'var(--text-muted)',
+                          marginTop: '2px',
+                        }}
+                      >
+                        {a.name}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div
+                        style={{
+                          fontSize: '0.7rem',
+                          padding: '2px 6px',
+                          borderRadius: '999px',
+                          background:
+                            a.severity === 'HIGH'
+                              ? 'rgba(245, 87, 108, 0.18)'
+                              : 'rgba(234, 179, 8, 0.18)',
+                          color:
+                            a.severity === 'HIGH'
+                              ? 'var(--accent-warning)'
+                              : 'var(--text-primary)',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {a.alert_type.replace(/_/g, ' ')}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.7rem',
+                          color: 'var(--text-muted)',
+                          marginTop: '4px',
+                        }}
+                      >
+                        {a.breakout_probability}% prob.
+                      </div>
+                    </div>
+                  </div>
 
-              <div>
-                <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>Target Price</h4>
-                <table className="compact-table">
-                  <thead>
-                    <tr>
-                      <th>Level</th>
-                      <th>Prob.</th>
-                      <th>Reward %</th>
-                      <th>RR</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {riskReward.target_prices.map((t, idx) => (
-                      <tr key={idx}>
-                        <td>Rp {t.level.toLocaleString('id-ID')}</td>
-                        <td>{t.probability}%</td>
-                        <td>{t.reward.toFixed(2)}</td>
-                        <td>{t.risk_reward.toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '0.78rem',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-secondary)' }}>Harga</span>
+                    <span style={{ fontWeight: 600 }}>
+                      Rp {a.price.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '0.78rem',
+                      marginTop: '0.25rem',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-secondary)' }}>Δ Hari Ini</span>
+                    <span style={{ fontWeight: 600 }}>
+                      {a.change_percentage.toFixed(2)}%
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '0.78rem',
+                      marginTop: '0.25rem',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-secondary)' }}>Volume</span>
+                    <span style={{ fontWeight: 600 }}>
+                      {a.volume} ({a.volume_vs_avg.toFixed(1)}x)
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '0.78rem',
+                      marginTop: '0.4rem',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-secondary)' }}>Target</span>
+                    <span style={{ fontWeight: 600 }}>
+                      Rp {a.target.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '0.78rem',
+                      marginTop: '0.25rem',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-secondary)' }}>Stop Loss</span>
+                    <span style={{ fontWeight: 600 }}>
+                      Rp {a.stop_loss.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: '0.4rem',
+                      fontSize: '0.74rem',
+                      color: 'var(--text-muted)',
+                    }}
+                  >
+                    {a.action}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -422,7 +495,16 @@ export default function RetailOpportunityPage() {
               type="button"
               onClick={loadSectorRotation}
               disabled={loading.sectorRotation}
-              className="btn-primary"
+              style={{
+                padding: '0.35rem 0.8rem',
+                borderRadius: '999px',
+                border: '1px solid var(--border-color)',
+                background: 'rgba(255,255,255,0.02)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.75rem',
+                cursor: loading.sectorRotation ? 'default' : 'pointer',
+                opacity: loading.sectorRotation ? 0.6 : 1,
+              }}
             >
               {loading.sectorRotation ? 'Refreshing...' : 'Refresh'}
             </button>
@@ -432,33 +514,85 @@ export default function RetailOpportunityPage() {
           </p>
 
           {sectorRotation && (
-            <div style={{ marginTop: '0.75rem', overflowX: 'auto' }}>
-              <table className="compact-table">
-                <thead>
-                  <tr>
-                    <th>Sektor</th>
-                    <th>Momentum</th>
-                    <th>Status</th>
-                    <th>Rata-rata % Hari Ini</th>
-                    <th>Value</th>
-                    <th>Rekomendasi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...(sectorRotation.hot_sectors || []), ...(sectorRotation.cold_sectors || [])].map(
-                    (s) => (
-                      <tr key={s.sector_id}>
-                        <td>{s.sector_name}</td>
-                        <td>{s.momentum_score}</td>
-                        <td>{s.status}</td>
-                        <td>{s.avg_return_today.toFixed(2)}%</td>
-                        <td>{s.total_value_formatted}</td>
-                        <td>{s.recommendation}</td>
-                      </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
+            <div
+              style={{
+                marginTop: '0.75rem',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '0.9rem',
+              }}
+            >
+              {[...(sectorRotation.hot_sectors || []), ...(sectorRotation.cold_sectors || [])].map(
+                (s) => (
+                  <div
+                    key={s.sector_id}
+                    className="glass-card"
+                    style={{
+                      padding: '0.9rem',
+                      borderRadius: '12px',
+                      background: 'rgba(255,255,255,0.02)',
+                      border: '1px solid var(--border-color)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        marginBottom: '0.4rem',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{s.sector_name}</div>
+                        <div
+                          style={{
+                            fontSize: '0.7rem',
+                            color: 'var(--text-muted)',
+                            marginTop: '2px',
+                          }}
+                        >
+                          Momentum {s.momentum_score} • {s.status}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.7rem',
+                          padding: '2px 6px',
+                          borderRadius: '999px',
+                          background: 'rgba(255,255,255,0.03)',
+                          border: '1px solid rgba(255,255,255,0.06)',
+                        }}
+                      >
+                        {s.recommendation}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '0.78rem',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      <span style={{ color: 'var(--text-secondary)' }}>Rata-rata hari ini</span>
+                      <span style={{ fontWeight: 600 }}>
+                        {s.avg_return_today.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '0.78rem',
+                      }}
+                    >
+                      <span style={{ color: 'var(--text-secondary)' }}>Value</span>
+                      <span style={{ fontWeight: 600 }}>{s.total_value_formatted}</span>
+                    </div>
+                  </div>
+                )
+              )}
             </div>
           )}
         </div>
