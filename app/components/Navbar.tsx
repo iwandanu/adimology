@@ -86,6 +86,34 @@ const Navbar = () => {
               Summary
             </Link>
             <Link 
+              href="/retail-opportunity" 
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/retail-opportunity' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/retail-opportunity' ? 600 : 400,
+                fontSize: '0.9rem',
+                borderBottom: pathname === '/retail-opportunity' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                paddingBottom: '2px',
+                transition: 'all 0.2s'
+              }}
+            >
+              Retail Opportunity
+            </Link>
+            <Link 
+              href="/advanced-analytics" 
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/advanced-analytics' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/advanced-analytics' ? 600 : 400,
+                fontSize: '0.9rem',
+                borderBottom: pathname === '/advanced-analytics' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                paddingBottom: '2px',
+                transition: 'all 0.2s'
+              }}
+            >
+              Advanced Analytics
+            </Link>
+            <Link 
               href="/screen" 
               style={{
                 textDecoration: 'none',
@@ -216,6 +244,48 @@ const Navbar = () => {
               }}
             >
               Summary
+            </Link>
+            <Link 
+              href="/screen" 
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/screen' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/screen' ? 600 : 400,
+                fontSize: '1rem',
+                padding: '0.5rem 0',
+                transition: 'all 0.2s'
+              }}
+            >
+              Screener
+            </Link>
+            <Link 
+              href="/retail-opportunity" 
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/retail-opportunity' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/retail-opportunity' ? 600 : 400,
+                fontSize: '1rem',
+                padding: '0.5rem 0',
+                transition: 'all 0.2s'
+              }}
+            >
+              Retail Opportunity
+            </Link>
+            <Link 
+              href="/advanced-analytics" 
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/advanced-analytics' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/advanced-analytics' ? 600 : 400,
+                fontSize: '1rem',
+                padding: '0.5rem 0',
+                transition: 'all 0.2s'
+              }}
+            >
+              Advanced Analytics
             </Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0' }}>
               <a

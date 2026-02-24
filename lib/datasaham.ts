@@ -219,3 +219,38 @@ export async function fetchDatasahamHistoricalMap(
   return map;
 }
 
+/**
+ * Retail Opportunity helpers (Datasaham.io)
+ * These mirror the Retail endpoints documented at https://api.datasaham.io/swagger
+ */
+
+export async function fetchRetailMultibaggerScan(
+  limit: number = 20
+): Promise<unknown | null> {
+  return fetchDatasaham<unknown>('/api/analysis/retail/multibagger/scan', {
+    limit,
+  });
+}
+
+export async function fetchRetailBreakoutAlerts(
+  limit: number = 30
+): Promise<unknown | null> {
+  return fetchDatasaham<unknown>('/api/analysis/retail/breakout/alerts', {
+    limit,
+  });
+}
+
+export async function fetchRetailRiskReward(
+  symbol: string
+): Promise<unknown | null> {
+  if (!symbol) return null;
+  return fetchDatasaham<unknown>(
+    `/api/analysis/retail/risk-reward/${encodeURIComponent(symbol.toUpperCase())}`
+  );
+}
+
+export async function fetchRetailSectorRotation(): Promise<unknown | null> {
+  return fetchDatasaham<unknown>('/api/analysis/retail/sector-rotation');
+}
+
+
