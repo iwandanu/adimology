@@ -357,6 +357,7 @@ export default function RetailOpportunityPage() {
                     borderRadius: '12px',
                     background: 'rgba(255,255,255,0.02)',
                     border: '1px solid var(--border-color)',
+                    cursor: 'pointer',
                   }}
                   onClick={() => router.push(`/?symbol=${a.symbol}`)}
                 >

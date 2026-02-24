@@ -253,4 +253,42 @@ export async function fetchRetailSectorRotation(): Promise<unknown | null> {
   return fetchDatasaham<unknown>('/api/analysis/retail/sector-rotation');
 }
 
+/**
+ * Advanced Analytics helpers (Datasaham.io)
+ * Correlation matrix and multi-market screener.
+ */
+
+export async function fetchAdvancedCorrelation(
+  symbols: string,
+  periodDays?: number
+): Promise<unknown | null> {
+  if (!symbols.trim()) return null;
+  const params: Record<string, string | number> = { symbols };
+  if (periodDays && Number.isFinite(periodDays)) {
+    params.period_days = periodDays;
+  }
+  return fetchDatasaham<unknown>('/api/analysis/correlation', params);
+}
+
+export interface MultiMarketScreenerParams {
+  commodityExposure?: string;
+  forexExposure?: 'exporter' | 'importer' | 'all';
+  minPrice?: number;
+  maxPrice?: number;
+  minVolume?: number;
+}
+
+export async function fetchAdvancedMultiMarketScreener(
+  params: MultiMarketScreenerParams
+): Promise<unknown | null> {
+  const query: Record<string, string | number> = {};
+  if (params.commodityExposure) query.commodityExposure = params.commodityExposure;
+  if (params.forexExposure) query.forexExposure = params.forexExposure;
+  if (typeof params.minPrice === 'number') query.minPrice = params.minPrice;
+  if (typeof params.maxPrice === 'number') query.maxPrice = params.maxPrice;
+  if (typeof params.minVolume === 'number') query.minVolume = params.minVolume;
+
+  return fetchDatasaham<unknown>('/api/analysis/screener/multi-market', query);
+}
+
 

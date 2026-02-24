@@ -99,20 +99,48 @@ const Navbar = () => {
             >
               Retail Opportunity
             </Link>
-            <Link 
-              href="/advanced-analytics" 
-              style={{
-                textDecoration: 'none',
-                color: pathname === '/advanced-analytics' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: pathname === '/advanced-analytics' ? 600 : 400,
-                fontSize: '0.9rem',
-                borderBottom: pathname === '/advanced-analytics' ? '2px solid var(--accent-primary)' : '2px solid transparent',
-                paddingBottom: '2px',
-                transition: 'all 0.2s'
-              }}
-            >
-              Advanced Analytics
-            </Link>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Link 
+                href="/advanced-analytics" 
+                style={{
+                  textDecoration: 'none',
+                  color: pathname.startsWith('/advanced-analytics') ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontWeight: pathname.startsWith('/advanced-analytics') ? 600 : 400,
+                  fontSize: '0.9rem',
+                  borderBottom: pathname === '/advanced-analytics' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                  paddingBottom: '2px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Advanced Analytics
+              </Link>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '2px' }}>
+                <Link
+                  href="/advanced-analytics/correlation"
+                  style={{
+                    fontSize: '0.75rem',
+                    textDecoration: 'none',
+                    color: pathname === '/advanced-analytics/correlation' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                  }}
+                >
+                  Correlation Analysis
+                </Link>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>•</span>
+                <Link
+                  href="/advanced-analytics/multi-market-screener"
+                  style={{
+                    fontSize: '0.75rem',
+                    textDecoration: 'none',
+                    color:
+                      pathname === '/advanced-analytics/multi-market-screener'
+                        ? 'var(--accent-primary)'
+                        : 'var(--text-muted)',
+                  }}
+                >
+                  Multi Market Screener
+                </Link>
+              </div>
+            </div>
             <div
               style={{
                 display: 'flex',
@@ -258,6 +286,34 @@ const Navbar = () => {
               }}
             >
               Advanced Analytics
+            </Link>
+            <Link 
+              href="/advanced-analytics/correlation" 
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/advanced-analytics/correlation' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/advanced-analytics/correlation' ? 600 : 400,
+                fontSize: '0.9rem',
+                padding: '0.25rem 0 0.25rem 0.75rem',
+                transition: 'all 0.2s'
+              }}
+            >
+              Correlation Analysis
+            </Link>
+            <Link 
+              href="/advanced-analytics/multi-market-screener" 
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                textDecoration: 'none',
+                color: pathname === '/advanced-analytics/multi-market-screener' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: pathname === '/advanced-analytics/multi-market-screener' ? 600 : 400,
+                fontSize: '0.9rem',
+                padding: '0.25rem 0 0.25rem 0.75rem',
+                transition: 'all 0.2s'
+              }}
+            >
+              Multi Market Screener
             </Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0' }}>
               <a
