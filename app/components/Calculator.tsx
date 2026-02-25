@@ -13,6 +13,7 @@ import EmitenHistoryCard from './EmitenHistoryCard';
 import TechnicalAnalysisCard from './TechnicalAnalysisCard';
 import TradingPlanCard from './TradingPlanCard';
 import CorporateActionsCard from './CorporateActionsCard';
+import ConnectRequiredCard from './ConnectRequiredCard';
 
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -129,7 +130,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
 
   const handleSubmit = async (data: StockInput) => {
     if (!user) {
-      setError('Silakan Connect Google (kanan atas) untuk menggunakan fitur penuh Adimology.');
+      setError('Silakan Connect Google untuk menggunakan fitur penuh Adimology.');
       return;
     }
     window.dispatchEvent(new CustomEvent('stockbit-fetch-start'));
@@ -365,7 +366,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   // User-initiated: create a NEW analysis via POST + start polling
   const handleAnalyzeStory = async () => {
     if (!user) {
-      setError('Silakan Connect Google (kanan atas) untuk menggunakan PandAi - Panduan AI.');
+      setError('Silakan Connect Google untuk menggunakan PandAi - Panduan AI.');
       return;
     }
     if (!result) return;
@@ -421,7 +422,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
 
   const handleAnalyzeBrakotBrekot = async () => {
     if (!user) {
-      setError('Silakan Connect Google (kanan atas) untuk menggunakan PandAi - Panduan AI.');
+      setError('Silakan Connect Google untuk menggunakan PandAi - Panduan AI.');
       return;
     }
     if (!result) return;
@@ -694,13 +695,17 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
       {/* Fetching indicator moved to Navbar */}
 
       {error && (
-        <div className="glass-card mt-4" style={{
-          background: 'rgba(245, 87, 108, 0.1)',
-          borderColor: 'var(--accent-warning)'
-        }}>
-          <h3>❌ Error</h3>
-          <p style={{ color: 'var(--accent-warning)' }}>{error}</p>
-        </div>
+        error.includes('Connect Google') ? (
+          <ConnectRequiredCard message={error} />
+        ) : (
+          <div className="glass-card mt-4" style={{
+            background: 'rgba(245, 87, 108, 0.1)',
+            borderColor: 'var(--accent-warning)'
+          }}>
+            <h3>❌ Error</h3>
+            <p style={{ color: 'var(--accent-warning)' }}>{error}</p>
+          </div>
+        )
       )}
 
       {result && (

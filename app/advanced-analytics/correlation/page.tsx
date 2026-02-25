@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAppUser } from '@/app/components/UserProvider';
+import ConnectRequiredCard from '@/app/components/ConnectRequiredCard';
 
 type CorrelationPayload = Record<string, any>;
 
@@ -17,7 +18,7 @@ export default function CorrelationAnalysisPage() {
     if (!symbols.trim()) return;
 
     if (!user) {
-      setError('Silakan Connect Google (kanan atas) untuk menggunakan Advanced Analytics.');
+      setError('Silakan Connect Google untuk menggunakan Advanced Analytics.');
       return;
     }
 
@@ -147,19 +148,23 @@ export default function CorrelationAnalysisPage() {
         </div>
 
         {error && (
-          <div
-            className="glass-card"
-            style={{
-              padding: '1rem',
-              marginBottom: '1rem',
-              borderColor: 'rgba(245, 87, 108, 0.6)',
-              background: 'rgba(245, 87, 108, 0.08)',
-              color: '#f5576c',
-              fontSize: '0.8rem',
-            }}
-          >
-            {error}
-          </div>
+          error.includes('Connect Google') ? (
+            <ConnectRequiredCard message={error} />
+          ) : (
+            <div
+              className="glass-card"
+              style={{
+                padding: '1rem',
+                marginBottom: '1rem',
+                borderColor: 'rgba(245, 87, 108, 0.6)',
+                background: 'rgba(245, 87, 108, 0.08)',
+                color: '#f5576c',
+                fontSize: '0.8rem',
+              }}
+            >
+              {error}
+            </div>
+          )
         )}
 
         {data && (
