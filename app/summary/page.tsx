@@ -1,6 +1,41 @@
+'use client';
+
 import EmitenSummaryCard from '../components/EmitenSummaryCard';
+import { useAppUser } from '../components/UserProvider';
 
 export default function SummaryPage() {
+  const { user, loading } = useAppUser();
+  const isAdmin = !!user?.email && user.email.toLowerCase() === 'dimasiwandanu@gmail.com';
+
+  if (loading) {
+    return (
+      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+        <div className="glass-card" style={{ padding: '1.5rem', textAlign: 'center', fontSize: '0.9rem' }}>
+          Memuat sesi pengguna...
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return (
+      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+        <div
+          className="glass-card"
+          style={{
+            padding: '1.5rem',
+            fontSize: '0.9rem',
+            maxWidth: '480px',
+            margin: '0 auto',
+            textAlign: 'center',
+          }}
+        >
+          Halaman Summary hanya tersedia untuk admin.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
       <EmitenSummaryCard />

@@ -5,12 +5,15 @@ import { useSearchParams } from 'next/navigation';
 import Calculator from './components/Calculator';
 import WatchlistSidebar from './components/WatchlistSidebar';
 import { PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { useAppUser } from './components/UserProvider';
 
 function HomeContent() {
   const searchParams = useSearchParams();
   const symbol = searchParams.get('symbol');
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
+   const { user } = useAppUser();
+   const isAdmin = !!user?.email && user.email.toLowerCase() === 'dimasiwandanu@gmail.com';
 
   useEffect(() => {
     if (symbol) {
@@ -23,26 +26,30 @@ function HomeContent() {
       <div className="app-main">
         <Calculator selectedStock={selectedStock} />
       </div>
-      <div
-        className={`app-sidebar ${!sidebarVisible ? 'app-sidebar--hidden' : ''}`}
-        data-visible={sidebarVisible}
-      >
-        <WatchlistSidebar
-          onSelect={setSelectedStock}
-          onCollapse={() => setSidebarVisible(false)}
-        />
-      </div>
-      {!sidebarVisible && (
-        <button
-          type="button"
-          className="sidebar-expand-tab"
-          onClick={() => setSidebarVisible(true)}
-          title="Show Watchlist"
-          aria-label="Show Watchlist"
-        >
-          <PanelRightOpen size={18} />
-          <span>Watchlist</span>
-        </button>
+      {isAdmin && (
+        <>
+          <div
+            className={`app-sidebar ${!sidebarVisible ? 'app-sidebar--hidden' : ''}`}
+            data-visible={sidebarVisible}
+          >
+            <WatchlistSidebar
+              onSelect={setSelectedStock}
+              onCollapse={() => setSidebarVisible(false)}
+            />
+          </div>
+          {!sidebarVisible && (
+            <button
+              type="button"
+              className="sidebar-expand-tab"
+              onClick={() => setSidebarVisible(true)}
+              title="Show Watchlist"
+              aria-label="Show Watchlist"
+            >
+              <PanelRightOpen size={18} />
+              <span>Watchlist</span>
+            </button>
+          )}
+        </>
       )}
     </div>
   );

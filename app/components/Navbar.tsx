@@ -20,6 +20,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const { user } = useAppUser();
+  const isAdmin = !!user?.email && user.email.toLowerCase() === 'dimasiwandanu@gmail.com';
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -60,34 +61,38 @@ const Navbar = () => {
             >
               Calculator
             </Link>
-            <Link 
-              href="/history" 
-              style={{
-                textDecoration: 'none',
-                color: pathname === '/history' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: pathname === '/history' ? 600 : 400,
-                fontSize: '0.9rem',
-                borderBottom: pathname === '/history' ? '2px solid var(--accent-primary)' : '2px solid transparent',
-                paddingBottom: '2px',
-                transition: 'all 0.2s'
-              }}
-            >
-              History
-            </Link>
-            <Link 
-              href="/summary" 
-              style={{
-                textDecoration: 'none',
-                color: pathname === '/summary' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: pathname === '/summary' ? 600 : 400,
-                fontSize: '0.9rem',
-                borderBottom: pathname === '/summary' ? '2px solid var(--accent-primary)' : '2px solid transparent',
-                paddingBottom: '2px',
-                transition: 'all 0.2s'
-              }}
-            >
-              Summary
-            </Link>
+            {isAdmin && (
+              <>
+                <Link 
+                  href="/history" 
+                  style={{
+                    textDecoration: 'none',
+                    color: pathname === '/history' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname === '/history' ? 600 : 400,
+                    fontSize: '0.9rem',
+                    borderBottom: pathname === '/history' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                    paddingBottom: '2px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  History
+                </Link>
+                <Link 
+                  href="/summary" 
+                  style={{
+                    textDecoration: 'none',
+                    color: pathname === '/summary' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname === '/summary' ? 600 : 400,
+                    fontSize: '0.9rem',
+                    borderBottom: pathname === '/summary' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                    paddingBottom: '2px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Summary
+                </Link>
+              </>
+            )}
             <Link 
               href="/retail-opportunity" 
               style={{
@@ -102,7 +107,7 @@ const Navbar = () => {
             >
               Retail Opportunity
             </Link>
-            {user?.email?.toLowerCase() === 'dimasiwandanu@gmail.com' && (
+            {isAdmin && (
               <Link 
                 href="/admin" 
                 style={{
@@ -304,34 +309,38 @@ const Navbar = () => {
             >
               Calculator
             </Link>
-            <Link 
-              href="/history" 
-              onClick={() => setIsMenuOpen(false)}
-              style={{
-                textDecoration: 'none',
-                color: pathname === '/history' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: pathname === '/history' ? 600 : 400,
-                fontSize: '1rem',
-                padding: '0.5rem 0',
-                transition: 'all 0.2s'
-              }}
-            >
-              History
-            </Link>
-            <Link 
-              href="/summary" 
-              onClick={() => setIsMenuOpen(false)}
-              style={{
-                textDecoration: 'none',
-                color: pathname === '/summary' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: pathname === '/summary' ? 600 : 400,
-                fontSize: '1rem',
-                padding: '0.5rem 0',
-                transition: 'all 0.2s'
-              }}
-            >
-              Summary
-            </Link>
+            {isAdmin && (
+              <>
+                <Link 
+                  href="/history" 
+                  onClick={() => setIsMenuOpen(false)}
+                  style={{
+                    textDecoration: 'none',
+                    color: pathname === '/history' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname === '/history' ? 600 : 400,
+                    fontSize: '1rem',
+                    padding: '0.5rem 0',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  History
+                </Link>
+                <Link 
+                  href="/summary" 
+                  onClick={() => setIsMenuOpen(false)}
+                  style={{
+                    textDecoration: 'none',
+                    color: pathname === '/summary' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname === '/summary' ? 600 : 400,
+                    fontSize: '1rem',
+                    padding: '0.5rem 0',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Summary
+                </Link>
+              </>
+            )}
             <Link 
               href="/retail-opportunity" 
               onClick={() => setIsMenuOpen(false)}
@@ -360,7 +369,7 @@ const Navbar = () => {
             >
               Advanced Analytics
             </Link>
-            {user?.email?.toLowerCase() === 'dimasiwandanu@gmail.com' && (
+            {isAdmin && (
               <Link 
                 href="/admin" 
                 onClick={() => setIsMenuOpen(false)}
