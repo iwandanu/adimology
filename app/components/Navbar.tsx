@@ -435,6 +435,64 @@ const Navbar = () => {
           </div>
           <div className="nav-status-group">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Account</span>
+              {user ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span
+                    style={{
+                      fontSize: '0.8rem',
+                      color: 'var(--text-secondary)',
+                      maxWidth: '160px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title={user.email || undefined}
+                  >
+                    {user.email || 'Google user'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { supabase.auth.signOut(); setIsMenuOpen(false); }}
+                    style={{
+                      fontSize: '0.75rem',
+                      padding: '4px 10px',
+                      borderRadius: '999px',
+                      border: '1px solid var(--border-color)',
+                      background: 'transparent',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    supabase.auth.signInWithOAuth({
+                      provider: 'google',
+                      options: { redirectTo: window.location.origin },
+                    });
+                    setIsMenuOpen(false);
+                  }}
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    border: '1px solid var(--accent-primary)',
+                    background: 'rgba(124, 58, 237, 0.12)',
+                    color: 'var(--accent-primary)',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Connect Google
+                </button>
+              )}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Job Status</span>
               <JobStatusIndicator />
             </div>
