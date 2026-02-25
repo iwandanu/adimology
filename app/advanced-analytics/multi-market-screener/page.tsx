@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAppUser } from '@/app/components/UserProvider';
 
 type MultiMarketPayload = Record<string, any>;
 
@@ -23,6 +24,7 @@ export default function MultiMarketScreenerPage() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<MultiMarketPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAppUser();
 
   const handleToggleCommodity = (name: string) => {
     setCommodityExposure((prev) =>
@@ -31,6 +33,11 @@ export default function MultiMarketScreenerPage() {
   };
 
   const handleRun = async () => {
+    if (!user) {
+      setError('Silakan Connect Google (kanan atas) untuk menggunakan Advanced Analytics.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setData(null);

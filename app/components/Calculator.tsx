@@ -20,6 +20,7 @@ import * as htmlToImage from 'html-to-image';
 import type { CorporateActions } from '@/lib/corporateActions';
 import type { StockInput, StockAnalysisResult, KeyStatsData, AgentStoryResult, BrakotBrekotResult } from '@/lib/types';
 import { getDefaultDate } from '@/lib/utils';
+import { useAppUser } from './UserProvider';
 
 interface CalculatorProps {
   selectedStock?: string | null;
@@ -97,6 +98,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   // Date state lifted from InputForm
   const [fromDate, setFromDate] = useState(getDefaultDate());
   const [toDate, setToDate] = useState(getDefaultDate());
+  const { user } = useAppUser();
 
   // Reset result and error when a new stock is selected from sidebar
   useEffect(() => {
@@ -126,6 +128,10 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   }, [selectedStock]);
 
   const handleSubmit = async (data: StockInput) => {
+    if (!user) {
+      setError('Silakan Connect Google (kanan atas) untuk menggunakan fitur penuh Adimology.');
+      return;
+    }
     window.dispatchEvent(new CustomEvent('stockbit-fetch-start'));
     setLoading(true);
     setError(null);
@@ -164,6 +170,23 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
       }
 
       setResult(json.data);
+
+      // Log user stock query for tracking
+      try {
+        await fetch('/api/usage/log-query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            emiten: data.emiten,
+            fromDate: data.fromDate,
+            toDate: data.toDate,
+            source: 'calculator',
+          }),
+        });
+      } catch (e) {
+        console.error('Failed to log user query:', e);
+      }
 
       // Fetch KeyStats after getting result
       try {
@@ -341,6 +364,10 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
 
   // User-initiated: create a NEW analysis via POST + start polling
   const handleAnalyzeStory = async () => {
+    if (!user) {
+      setError('Silakan Connect Google (kanan atas) untuk menggunakan PandAi - Panduan AI.');
+      return;
+    }
     if (!result) return;
 
     window.dispatchEvent(new CustomEvent('stockbit-fetch-start'));
@@ -393,6 +420,10 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   };
 
   const handleAnalyzeBrakotBrekot = async () => {
+    if (!user) {
+      setError('Silakan Connect Google (kanan atas) untuk menggunakan PandAi - Panduan AI.');
+      return;
+    }
     if (!result) return;
 
     const emiten = result.input.emiten.toUpperCase();

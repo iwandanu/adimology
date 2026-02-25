@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAppUser } from '@/app/components/UserProvider';
 
 type CorrelationPayload = Record<string, any>;
 
@@ -10,9 +11,16 @@ export default function CorrelationAnalysisPage() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CorrelationPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAppUser();
 
   const handleRun = async () => {
     if (!symbols.trim()) return;
+
+    if (!user) {
+      setError('Silakan Connect Google (kanan atas) untuk menggunakan Advanced Analytics.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setData(null);

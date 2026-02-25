@@ -9,6 +9,8 @@ import StockbitFetchingIndicator from './StockbitFetchingIndicator';
 import ThemeToggle from './ThemeToggle';
 import PasswordSettingModal from './PasswordSettingModal';
 import { Github, Menu, X, GitFork, Shield } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useAppUser } from './UserProvider';
 
 const UPSTREAM_REPO = 'https://github.com/bhaktiutama/adimology';
 const FORK_REPO = 'https://github.com/iwandanu/adimology';
@@ -17,6 +19,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const { user } = useAppUser();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -99,6 +102,21 @@ const Navbar = () => {
             >
               Retail Opportunity
             </Link>
+            {user?.email?.toLowerCase() === 'dimasiwandanu@gmail.com' && (
+              <Link 
+                href="/admin" 
+                style={{
+                  textDecoration: 'none',
+                  color: pathname === '/admin' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                  fontWeight: pathname === '/admin' ? 600 : 400,
+                  fontSize: '0.8rem',
+                  paddingBottom: '2px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Admin
+              </Link>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
               <Link 
                 href="/advanced-analytics" 
@@ -185,6 +203,61 @@ const Navbar = () => {
             <JobStatusIndicator />
             <TokenStatusIndicator />
             <ThemeToggle />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              {user ? (
+                <>
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--text-secondary)',
+                      maxWidth: '140px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title={user.email || undefined}
+                  >
+                    {user.email || 'Google user'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => supabase.auth.signOut()}
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '2px 6px',
+                      borderRadius: '999px',
+                      border: '1px solid var(--border-color)',
+                      background: 'transparent',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    supabase.auth.signInWithOAuth({
+                      provider: 'google',
+                      options: { redirectTo: window.location.origin },
+                    })
+                  }
+                  style={{
+                    fontSize: '0.75rem',
+                    padding: '4px 10px',
+                    borderRadius: '999px',
+                    border: '1px solid var(--accent-primary)',
+                    background: 'rgba(124, 58, 237, 0.12)',
+                    color: 'var(--accent-primary)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Connect Google
+                </button>
+              )}
+            </div>
             <button
               onClick={() => setIsPasswordModalOpen(true)}
               className="theme-toggle-btn"
@@ -287,6 +360,22 @@ const Navbar = () => {
             >
               Advanced Analytics
             </Link>
+            {user?.email?.toLowerCase() === 'dimasiwandanu@gmail.com' && (
+              <Link 
+                href="/admin" 
+                onClick={() => setIsMenuOpen(false)}
+                style={{
+                  textDecoration: 'none',
+                  color: pathname === '/admin' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  fontWeight: pathname === '/admin' ? 600 : 400,
+                  fontSize: '0.9rem',
+                  padding: '0.25rem 0 0.25rem 0.75rem',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Admin
+              </Link>
+            )}
             <Link 
               href="/advanced-analytics/correlation" 
               onClick={() => setIsMenuOpen(false)}

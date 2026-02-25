@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 
 import Navbar from "./components/Navbar";
 import PasswordGate from "./components/PasswordGate";
+import { UserProvider } from "./components/UserProvider";
 
 export default function RootLayout({
   children,
@@ -36,8 +37,10 @@ export default function RootLayout({
         className={`antialiased`}
       >
         <PasswordGate>
-          <Navbar />
-          {children}
+          <UserProvider>
+            <Navbar />
+            {children}
+          </UserProvider>
         </PasswordGate>
       </body>
     </html>
