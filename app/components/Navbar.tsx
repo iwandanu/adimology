@@ -60,6 +60,22 @@ const Navbar = () => {
             >
               Calculator
             </Link>
+            {user && (
+              <Link 
+                href="/search-history" 
+                style={{
+                  textDecoration: 'none',
+                  color: pathname === '/search-history' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontWeight: pathname === '/search-history' ? 600 : 400,
+                  fontSize: '0.9rem',
+                  borderBottom: pathname === '/search-history' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                  paddingBottom: '2px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Search History
+              </Link>
+            )}
             {isAdmin && (
               <>
                 <Link 
@@ -287,6 +303,22 @@ const Navbar = () => {
             >
               Calculator
             </Link>
+            {user && (
+              <Link 
+                href="/search-history" 
+                onClick={() => setIsMenuOpen(false)}
+                style={{
+                  textDecoration: 'none',
+                  color: pathname === '/search-history' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontWeight: pathname === '/search-history' ? 600 : 400,
+                  fontSize: '1rem',
+                  padding: '0.5rem 0',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Search History
+              </Link>
+            )}
             {isAdmin && (
               <>
                 <Link 
