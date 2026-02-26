@@ -2,10 +2,11 @@
 
 import EmitenSummaryCard from '../components/EmitenSummaryCard';
 import { useAppUser } from '../components/UserProvider';
+import { ADMIN_EMAIL } from '@/lib/config';
 
 export default function SummaryPage() {
   const { user, loading } = useAppUser();
-  const isAdmin = !!user?.email && user.email.toLowerCase() === 'dimasiwandanu@gmail.com';
+  const isAdmin = !!user?.email && user.email.toLowerCase() === ADMIN_EMAIL;
 
   if (loading) {
     return (

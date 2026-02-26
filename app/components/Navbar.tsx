@@ -10,6 +10,7 @@ import ThemeToggle from './ThemeToggle';
 import PasswordSettingModal from './PasswordSettingModal';
 import { Github, Menu, X, GitFork, Shield } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { ADMIN_EMAIL } from '@/lib/config';
 import { useAppUser } from './UserProvider';
 
 const UPSTREAM_REPO = 'https://github.com/bhaktiutama/adimology';
@@ -20,7 +21,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const { user } = useAppUser();
-  const isAdmin = !!user?.email && user.email.toLowerCase() === 'dimasiwandanu@gmail.com';
+  const isAdmin = !!user?.email && user.email.toLowerCase() === ADMIN_EMAIL;
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 

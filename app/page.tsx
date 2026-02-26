@@ -6,14 +6,15 @@ import Calculator from './components/Calculator';
 import WatchlistSidebar from './components/WatchlistSidebar';
 import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { useAppUser } from './components/UserProvider';
+import { ADMIN_EMAIL } from '@/lib/config';
 
 function HomeContent() {
   const searchParams = useSearchParams();
   const symbol = searchParams.get('symbol');
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
-   const { user } = useAppUser();
-   const isAdmin = !!user?.email && user.email.toLowerCase() === 'dimasiwandanu@gmail.com';
+  const { user } = useAppUser();
+  const isAdmin = !!user?.email && user.email.toLowerCase() === ADMIN_EMAIL;
 
   useEffect(() => {
     if (symbol) {
