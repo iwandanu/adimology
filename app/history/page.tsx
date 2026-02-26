@@ -1,8 +1,8 @@
 'use client';
 
-import WatchlistHistoryTable from '../components/WatchlistHistoryTable';
 import { useAppUser } from '../components/UserProvider';
 import { ADMIN_EMAIL } from '@/lib/config';
+import SearchHistoryPage from '../search-history/page';
 
 export default function HistoryPage() {
   const { user, loading } = useAppUser();
@@ -31,15 +31,16 @@ export default function HistoryPage() {
             textAlign: 'center',
           }}
         >
-          Halaman Watchlist History hanya tersedia untuk admin.
+          Halaman History hanya tersedia untuk admin.
         </div>
       </div>
     );
   }
 
+  // For admin, reuse the SearchHistory view, which already shows all users when isAdmin=true
   return (
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
-      <WatchlistHistoryTable />
+      <SearchHistoryPage />
     </div>
   );
 }

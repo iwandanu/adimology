@@ -14,6 +14,7 @@ interface UserQueryRow {
   created_at: string;
   source: string | null;
   user_id: string;
+  email: string | null;
 }
 
 export default function SearchHistoryPage() {
@@ -31,15 +32,15 @@ export default function SearchHistoryPage() {
       setLoadingRows(true);
       setError(null);
       try {
-        const query = supabase
+        const baseQuery = supabase
           .from('user_stock_queries')
-          .select('id, emiten, from_date, to_date, created_at, source, user_id')
+          .select('id, emiten, from_date, to_date, created_at, source, user_id, user_profiles ( email )')
           .order('created_at', { ascending: false })
           .limit(200);
 
         const { data, error } = await (isAdmin
-          ? query
-          : query.eq('user_id', user.id));
+          ? baseQuery
+          : baseQuery.eq('user_id', user.id));
 
         if (error) {
           console.error('load search history error:', error);
@@ -47,7 +48,19 @@ export default function SearchHistoryPage() {
           return;
         }
 
-        setRows((data as UserQueryRow[]) || []);
+        const mapped: UserQueryRow[] =
+          (data || []).map((row: any) => ({
+            id: row.id,
+            emiten: row.emiten,
+            from_date: row.from_date,
+            to_date: row.to_date,
+            created_at: row.created_at,
+            source: row.source,
+            user_id: row.user_id,
+            email: row.user_profiles?.email ?? null,
+          })) ?? [];
+
+        setRows(mapped);
       } finally {
         setLoadingRows(false);
       }
@@ -182,6 +195,16 @@ export default function SearchHistoryPage() {
                         fontWeight: 600,
                       }}
                     >
+                      Date
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'left',
+                        padding: '0.5rem 0.75rem',
+                        color: 'var(--text-secondary)',
+                        fontWeight: 600,
+                      }}
+                    >
                       Ticker
                     </th>
                     <th
@@ -202,7 +225,7 @@ export default function SearchHistoryPage() {
                         fontWeight: 600,
                       }}
                     >
-                      Waktu
+                      Sumber
                     </th>
                     <th
                       style={{
@@ -212,7 +235,7 @@ export default function SearchHistoryPage() {
                         fontWeight: 600,
                       }}
                     >
-                      Sumber
+                      User
                     </th>
                   </tr>
                 </thead>
@@ -220,7 +243,7 @@ export default function SearchHistoryPage() {
                   {filteredRows.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={5}
                         style={{
                           padding: '1rem',
                           textAlign: 'center',
@@ -231,42 +254,56 @@ export default function SearchHistoryPage() {
                       </td>
                     </tr>
                   ) : (
-                    filteredRows.map((row) => (
-                      <tr
-                        key={row.id}
-                        style={{
-                          borderBottom: '1px solid var(--border-color)',
-                        }}
-                      >
-                        <td style={{ padding: '0.45rem 0.75rem', fontWeight: 600 }}>
-                          <a
-                            href={`/?symbol=${encodeURIComponent(row.emiten)}`}
+                        filteredRows.map((row) => (
+                          <tr
+                            key={row.id}
                             style={{
-                              color: 'var(--accent-primary)',
-                              textDecoration: 'none',
+                              borderBottom: '1px solid var(--border-color)',
                             }}
                           >
-                            {row.emiten}
-                          </a>
-                        </td>
-                        <td style={{ padding: '0.45rem 0.75rem', color: 'var(--text-secondary)' }}>
-                          {row.from_date || row.to_date
-                            ? `${row.from_date || '?'} → ${row.to_date || '?'}`
-                            : '—'}
-                        </td>
-                        <td style={{ padding: '0.45rem 0.75rem', color: 'var(--text-secondary)' }}>
-                          {row.created_at
-                            ? new Date(row.created_at).toLocaleString('id-ID', {
-                                dateStyle: 'short',
-                                timeStyle: 'medium',
-                              })
-                            : '—'}
-                        </td>
-                        <td style={{ padding: '0.45rem 0.75rem', color: 'var(--text-muted)' }}>
-                          {row.source || 'calculator'}
-                        </td>
-                      </tr>
-                    ))
+                            <td style={{ padding: '0.45rem 0.75rem', color: 'var(--text-secondary)' }}>
+                              {row.created_at
+                                ? new Date(row.created_at).toLocaleDateString('id-ID', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: '2-digit',
+                                  })
+                                : '—'}
+                            </td>
+                            <td style={{ padding: '0.45rem 0.75rem', fontWeight: 600 }}>
+                              <a
+                                href={`/?symbol=${encodeURIComponent(row.emiten)}`}
+                                style={{
+                                  color: 'var(--accent-primary)',
+                                  textDecoration: 'none',
+                                }}
+                              >
+                                {row.emiten}
+                              </a>
+                            </td>
+                            <td style={{ padding: '0.45rem 0.75rem', color: 'var(--text-secondary)' }}>
+                              {row.from_date || row.to_date
+                                ? `${row.from_date || '?'} → ${row.to_date || '?'}`
+                                : '—'}
+                            </td>
+                            <td style={{ padding: '0.45rem 0.75rem', color: 'var(--text-muted)' }}>
+                              {row.source || 'calculator'}
+                            </td>
+                            <td
+                              style={{
+                                padding: '0.45rem 0.75rem',
+                                color: 'var(--text-secondary)',
+                                maxWidth: '240px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                              title={row.email || undefined}
+                            >
+                              {isAdmin ? row.email || '—' : (row.email || 'You')}
+                            </td>
+                          </tr>
+                        ))
                   )}
                 </tbody>
               </table>
