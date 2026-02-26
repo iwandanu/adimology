@@ -28,6 +28,7 @@ export async function saveStockQuery(data: {
   p?: number;
   target_realistis?: number;
   target_max?: number;
+  user_id?: string;
 }) {
   const { data: result, error } = await supabase
     .from('stock_queries')

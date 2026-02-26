@@ -3,6 +3,7 @@ import { fetchMarketDetector, fetchOrderbook, getTopBroker, parseLot, getBrokerS
 import { calculateTargets } from '@/lib/calculations';
 import { saveStockQuery, getLatestStockQuery, getSpecificStockQuery, getStockPriceByDate } from '@/lib/supabase';
 import type { StockInput, ApiResponse } from '@/lib/types';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +17,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Get current user session
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id || null;
 
     const isSingleDate = fromDate === toDate;
     const todayStr = new Date().toISOString().split('T')[0];
@@ -175,6 +180,7 @@ export async function POST(request: NextRequest) {
         p: calculated.p,
         target_realistis: calculated.targetRealistis1,
         target_max: calculated.targetMax,
+        user_id: userId || undefined,
       }).catch((err) => console.error('Failed to save to Supabase:', err));
     }
 
