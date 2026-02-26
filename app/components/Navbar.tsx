@@ -7,8 +7,7 @@ import TokenStatusIndicator from './TokenStatusIndicator';
 import JobStatusIndicator from './JobStatusIndicator';
 import StockbitFetchingIndicator from './StockbitFetchingIndicator';
 import ThemeToggle from './ThemeToggle';
-import PasswordSettingModal from './PasswordSettingModal';
-import { Github, Menu, X, GitFork, Shield } from 'lucide-react';
+import { Github, Menu, X, GitFork } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { ADMIN_EMAIL } from '@/lib/config';
 import { useAppUser } from './UserProvider';
@@ -19,7 +18,6 @@ const FORK_REPO = 'https://github.com/iwandanu/adimology';
 const Navbar = () => {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const { user } = useAppUser();
   const isAdmin = !!user?.email && user.email.toLowerCase() === ADMIN_EMAIL;
 
@@ -264,27 +262,6 @@ const Navbar = () => {
                 </button>
               )}
             </div>
-            <button
-              onClick={() => setIsPasswordModalOpen(true)}
-              className="theme-toggle-btn"
-              title="Password Protection"
-              style={{ 
-                background: 'var(--bg-card)', 
-                border: '1px solid var(--border-color)', 
-                color: 'var(--text-primary)', 
-                cursor: 'pointer', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                width: '38px',
-                height: '38px',
-                borderRadius: '12px', 
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                backdropFilter: 'blur(10px)',
-              }}
-            >
-              <Shield size={20} strokeWidth={2.5} />
-            </button>
           </div>
         </div>
 
@@ -506,29 +483,13 @@ const Navbar = () => {
               <ThemeToggle />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Password</span>
-              <button
-                onClick={() => { setIsPasswordModalOpen(true); setIsMenuOpen(false); }}
-                style={{ 
-                  background: 'var(--bg-card)', 
-                  border: '1px solid var(--border-color)', 
-                  color: 'var(--text-primary)', 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '10px'
-                }}
-              >
-                <Shield size={18} strokeWidth={2.5} />
-              </button>
+              {/* Password protection removed; Google Auth is now the primary access control */}
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Access</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Protected by Google</span>
             </div>
           </div>
         </div>
       </div>
-      <PasswordSettingModal isOpen={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} />
     </nav>
   );
 };
