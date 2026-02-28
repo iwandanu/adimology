@@ -7,7 +7,7 @@ import TokenStatusIndicator from './TokenStatusIndicator';
 import JobStatusIndicator from './JobStatusIndicator';
 import StockbitFetchingIndicator from './StockbitFetchingIndicator';
 import ThemeToggle from './ThemeToggle';
-import { Github, Menu, X, GitFork } from 'lucide-react';
+import { Github, Menu, X, GitFork, ChevronDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { ADMIN_EMAIL } from '@/lib/config';
 import { useAppUser } from './UserProvider';
@@ -18,10 +18,12 @@ const FORK_REPO = 'https://github.com/iwandanu/adimology';
 const Navbar = () => {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScreenerDropdownOpen, setIsScreenerDropdownOpen] = useState(false);
   const { user } = useAppUser();
   const isAdmin = !!user?.email && user.email.toLowerCase() === ADMIN_EMAIL;
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleScreenerDropdown = () => setIsScreenerDropdownOpen(!isScreenerDropdownOpen);
 
   return (
     <nav className="navbar">
@@ -138,6 +140,69 @@ const Navbar = () => {
             >
               Retail Opportunity
             </Link>
+            <div 
+              style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+              onMouseEnter={() => setIsScreenerDropdownOpen(true)}
+              onMouseLeave={() => setIsScreenerDropdownOpen(false)}
+            >
+              <button
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  textDecoration: 'none',
+                  color: pathname.startsWith('/minervini-screener') ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontWeight: pathname.startsWith('/minervini-screener') ? 600 : 400,
+                  fontSize: '0.9rem',
+                  borderBottom: pathname.startsWith('/minervini-screener') ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                  paddingBottom: '2px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Screener
+                <ChevronDown size={16} />
+              </button>
+              {isScreenerDropdownOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    marginTop: '0.5rem',
+                    background: 'var(--bg-primary)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    minWidth: '200px',
+                    zIndex: 1000,
+                    padding: '0.5rem 0'
+                  }}
+                >
+                  <Link
+                    href="/minervini-screener"
+                    style={{
+                      display: 'block',
+                      padding: '0.75rem 1rem',
+                      textDecoration: 'none',
+                      color: pathname === '/minervini-screener' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      fontSize: '0.9rem',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'var(--bg-secondary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    Minervini Screener
+                  </Link>
+                </div>
+              )}
+            </div>
             {isAdmin && (
               <Link 
                 href="/admin" 
@@ -397,6 +462,39 @@ const Navbar = () => {
             >
               Retail Opportunity
             </Link>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div 
+                style={{
+                  color: pathname.startsWith('/minervini-screener') ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontWeight: pathname.startsWith('/minervini-screener') ? 600 : 400,
+                  fontSize: '1rem',
+                  padding: '0.5rem 0',
+                  cursor: 'pointer'
+                }}
+                onClick={() => setIsScreenerDropdownOpen(!isScreenerDropdownOpen)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  Screener
+                  <ChevronDown size={16} style={{ transform: isScreenerDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                </div>
+              </div>
+              {isScreenerDropdownOpen && (
+                <Link 
+                  href="/minervini-screener" 
+                  onClick={() => setIsMenuOpen(false)}
+                  style={{
+                    textDecoration: 'none',
+                    color: pathname === '/minervini-screener' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname === '/minervini-screener' ? 600 : 400,
+                    fontSize: '0.9rem',
+                    padding: '0.25rem 0 0.25rem 1rem',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Minervini Screener
+                </Link>
+              )}
+            </div>
             <Link 
               href="/advanced-analytics" 
               onClick={() => setIsMenuOpen(false)}

@@ -241,6 +241,31 @@ body::before {
   filter: brightness(0.9);
 }
 
+.outline-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.outline-btn:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: rgba(124, 58, 237, 0.05);
+  transform: translateY(-1px);
+}
+
+.outline-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.outline-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .flag-btn {
   transition: all 0.2s ease;
   cursor: pointer;

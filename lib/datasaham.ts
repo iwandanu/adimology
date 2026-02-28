@@ -291,4 +291,73 @@ export async function fetchAdvancedMultiMarketScreener(
   return fetchDatasaham<unknown>('/api/analysis/screener/multi-market', query);
 }
 
+/**
+ * Fetch all sectors list from DataSaham API
+ * Returns array of sector objects with id and name
+ */
+export interface DatasahamSector {
+  id: string;
+  name: string;
+  performance?: {
+    day: number;
+    week: number;
+    month: number;
+  };
+}
+
+export async function fetchDatasahamSectors(): Promise<DatasahamSector[] | null> {
+  return fetchDatasaham<DatasahamSector[]>('/api/sectors/');
+}
+
+/**
+ * Fetch companies in a specific sector from DataSaham API
+ */
+export interface DatasahamCompany {
+  symbol: string;
+  name: string;
+  sector: string;
+  subsector?: string;
+  is_syariah?: boolean;
+}
+
+export async function fetchDatasahamSectorCompanies(
+  sectorId: string
+): Promise<DatasahamCompany[] | null> {
+  const result = await fetchDatasaham<{ companies: DatasahamCompany[] }>(
+    `/api/sectors/${sectorId}/companies`
+  );
+  return result?.companies || null;
+}
+
+/**
+ * Build sector map from DataSaham API
+ * Returns map of symbol -> sector name
+ */
+export async function buildSectorMapFromDatasaham(
+  symbols: string[]
+): Promise<Map<string, string>> {
+  const sectorMap = new Map<string, string>();
+  
+  // Fetch all sectors first
+  const sectors = await fetchDatasahamSectors();
+  if (!sectors) return sectorMap;
+  
+  // For each sector, fetch companies and match symbols
+  for (const sector of sectors) {
+    const companies = await fetchDatasahamSectorCompanies(sector.id);
+    if (!companies) continue;
+    
+    for (const company of companies) {
+      const symbol = company.symbol.toUpperCase().replace('.JK', '');
+      if (symbols.includes(symbol)) {
+        sectorMap.set(symbol, sector.name);
+      }
+    }
+    
+    // Add delay to be API-friendly
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  
+  return sectorMap;
+}
 

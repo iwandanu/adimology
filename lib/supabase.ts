@@ -1038,3 +1038,168 @@ export async function deleteCachedWatchlistItem(watchlistId: number, symbol: str
     console.error('Error deleting cached watchlist item:', error);
   }
 }
+
+/**
+ * Save Minervini screening results to database
+ */
+export async function saveMinerviniResults(
+  results: Array<{
+    emiten: string;
+    sector: string;
+    price: number;
+    score: number;
+    rs: number;
+    week52High: number;
+    week52Low: number;
+    ma50: number | null;
+    ma150: number | null;
+    ma200: number | null;
+    criteria: {
+      c1_priceAboveMA150_200: boolean;
+      c2_ma150AboveMA200: boolean;
+      c3_ma200TrendingUp: boolean;
+      c4_ma50AboveMAs: boolean;
+      c5_priceAboveMA50: boolean;
+      c6_priceAbove30PercentLow: boolean;
+      c7_priceWithin25PercentHigh: boolean;
+      c8_relativeStrengthAbove70: boolean;
+    };
+  }>,
+  universe: string,
+  scannedAt: string
+): Promise<void> {
+  const rows = results.map((result) => ({
+    emiten: result.emiten,
+    sector: result.sector,
+    price: result.price,
+    score: result.score,
+    rs: result.rs,
+    week_52_high: result.week52High,
+    week_52_low: result.week52Low,
+    ma50: result.ma50,
+    ma150: result.ma150,
+    ma200: result.ma200,
+    c1: result.criteria.c1_priceAboveMA150_200,
+    c2: result.criteria.c2_ma150AboveMA200,
+    c3: result.criteria.c3_ma200TrendingUp,
+    c4: result.criteria.c4_ma50AboveMAs,
+    c5: result.criteria.c5_priceAboveMA50,
+    c6: result.criteria.c6_priceAbove30PercentLow,
+    c7: result.criteria.c7_priceWithin25PercentHigh,
+    c8: result.criteria.c8_relativeStrengthAbove70,
+    universe,
+    scanned_at: scannedAt,
+  }));
+
+  const { error } = await supabase.from('minervini_screening_results').insert(rows);
+
+  if (error) {
+    console.error('Error saving Minervini results:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch latest Minervini screening results
+ */
+export async function fetchLatestMinerviniScan(
+  universe?: string,
+  minScore?: number,
+  limit: number = 100
+): Promise<{
+  results: any[];
+  scannedAt: string | null;
+}> {
+  let query = supabase
+    .from('minervini_screening_results')
+    .select('*')
+    .order('scanned_at', { ascending: false })
+    .order('score', { ascending: false })
+    .order('rs', { ascending: false });
+
+  if (universe) {
+    query = query.eq('universe', universe);
+  }
+
+  if (minScore !== undefined) {
+    query = query.gte('score', minScore);
+  }
+
+  query = query.limit(limit);
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching Minervini results:', error);
+    throw error;
+  }
+
+  // Get the latest scan time
+  const scannedAt = data && data.length > 0 ? data[0].scanned_at : null;
+
+  // Filter to only include results from the latest scan
+  const latestResults = scannedAt
+    ? data?.filter((row) => row.scanned_at === scannedAt) || []
+    : [];
+
+  return {
+    results: latestResults,
+    scannedAt,
+  };
+}
+
+/**
+ * Get Minervini screening history (aggregated by scan date)
+ */
+export async function fetchMinerviniScanHistory(
+  days: number = 30
+): Promise<Array<{
+  scannedAt: string;
+  count: number;
+  score8: number;
+  score7: number;
+  score6: number;
+  universe: string;
+}>> {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+
+  const { data, error } = await supabase
+    .from('minervini_screening_results')
+    .select('scanned_at, score, universe')
+    .gte('scanned_at', cutoffDate.toISOString())
+    .order('scanned_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching Minervini history:', error);
+    return [];
+  }
+
+  // Group by scanned_at
+  const grouped = new Map<string, { count: number; score8: number; score7: number; score6: number; universe: string }>();
+
+  data?.forEach((row) => {
+    const key = row.scanned_at;
+    if (!grouped.has(key)) {
+      grouped.set(key, {
+        count: 0,
+        score8: 0,
+        score7: 0,
+        score6: 0,
+        universe: row.universe || 'unknown',
+      });
+    }
+
+    const group = grouped.get(key)!;
+    group.count++;
+    if (row.score === 8) group.score8++;
+    else if (row.score === 7) group.score7++;
+    else if (row.score === 6) group.score6++;
+  });
+
+  return Array.from(grouped.entries()).map(([scannedAt, stats]) => ({
+    scannedAt,
+    ...stats,
+  }));
+}
+

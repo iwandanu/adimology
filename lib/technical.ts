@@ -171,6 +171,7 @@ export interface TechnicalAnalysisResult {
   sma20: number | null;
   sma50: number | null;
   sma100: number | null;
+  sma150: number | null;
   sma200: number | null;
   lastClose: number | null;
   macd: { macd: number; signal: number; histogram: number } | null;
@@ -194,6 +195,7 @@ export function analyzeTechnical(data: OHLCData[]): TechnicalAnalysisResult {
     sma20: null,
     sma50: null,
     sma100: null,
+    sma150: null,
     sma200: null,
     lastClose: null,
     macd: null,
@@ -218,6 +220,7 @@ export function analyzeTechnical(data: OHLCData[]): TechnicalAnalysisResult {
   result.sma20 = calculateSMA(closes, 20);
   result.sma50 = calculateSMA(closes, 50);
   result.sma100 = calculateSMA(closes, 100);
+  result.sma150 = calculateSMA(closes, 150);
   result.sma200 = calculateSMA(closes, 200);
 
   result.macd = calculateMACD(closes);

@@ -11,5 +11,8 @@
 [functions."analyze-watchlist"]
   schedule = "0 11 * * *"
 
+[functions."minervini-screener-scheduled"]
+  schedule = "0 1,9 * * *"
+
 [functions."generate-pdf-report-background"]
   background = true
