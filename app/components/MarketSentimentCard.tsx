@@ -41,10 +41,10 @@ interface MarketSentimentData {
 export default function MarketSentimentCard({ emiten, data, loading }: MarketSentimentCardProps) {
   if (loading) {
     return (
-      <div className="compact-style-card">
+      <div className="compact-style-card" role="article" aria-label="Market Sentiment Loading">
         <div className="compact-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }} aria-hidden="true">
               <circle cx="12" cy="12" r="10" />
               <path d="M8 14s1.5 2 4 2 4-2 4-2" />
               <line x1="9" y1="9" x2="9.01" y2="9" />
@@ -54,17 +54,33 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
           </div>
           <div className="compact-date">{emiten.toUpperCase()}</div>
         </div>
-        <div className="spinner" style={{ margin: '1rem auto' }}></div>
+        
+        {/* Skeleton Loading State */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+          <div className="skeleton-box" style={{ height: '80px', borderRadius: '12px' }} />
+          <div className="skeleton-box" style={{ height: '120px', borderRadius: '8px' }} />
+          <div className="skeleton-box" style={{ height: '120px', borderRadius: '8px' }} />
+          <div className="skeleton-box" style={{ height: '60px', borderRadius: '8px' }} />
+          <p style={{ 
+            textAlign: 'center', 
+            fontSize: '0.65rem', 
+            color: 'var(--text-muted)',
+            marginTop: '0.5rem',
+            fontStyle: 'italic'
+          }}>
+            Analyzing market sentiment...
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="compact-style-card">
+      <div className="compact-style-card" role="article" aria-label="Market Sentiment Unavailable">
         <div className="compact-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }} aria-hidden="true">
               <circle cx="12" cy="12" r="10" />
               <path d="M8 14s1.5 2 4 2 4-2 4-2" />
               <line x1="9" y1="9" x2="9.01" y2="9" />
@@ -74,7 +90,7 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
           </div>
           <div className="compact-date">{emiten.toUpperCase()}</div>
         </div>
-        <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+        <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }} role="status">
           No sentiment data available
         </div>
       </div>
@@ -119,10 +135,10 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
   const signalBadge = getSignalBadge(data.divergence.signal);
 
   return (
-    <div className="compact-style-card">
+    <div className="compact-style-card market-sentiment-card" role="article" aria-label={`Market Sentiment Analysis for ${emiten}`}>
       <div className="compact-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }} aria-hidden="true">
             <circle cx="12" cy="12" r="10" />
             <path d="M8 14s1.5 2 4 2 4-2 4-2" />
             <line x1="9" y1="9" x2="9.01" y2="9" />
@@ -140,23 +156,28 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
         textAlign: 'right', 
         marginBottom: '0.75rem',
         paddingTop: '0.25rem'
-      }}>
+      }} aria-label={`Analysis period: ${data.analysis_period_days} days`}>
         {data.analysis_period_days} days analysis
       </div>
 
       {/* Divergence Signal Badge - Prominent Display */}
-      <div style={{
-        background: signalBadge.bg,
-        border: `1px solid ${signalBadge.color}40`,
-        borderRadius: '12px',
-        padding: '0.75rem',
-        marginBottom: '0.75rem',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem'
-      }}>
-        <div style={{ fontSize: '1.5rem' }}>{signalBadge.icon}</div>
-        <div style={{ flex: 1 }}>
+      <div 
+        style={{
+          background: signalBadge.bg,
+          border: `1px solid ${signalBadge.color}40`,
+          borderRadius: '12px',
+          padding: '0.75rem',
+          marginBottom: '0.75rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }}
+        role="alert"
+        aria-live="polite"
+        aria-label={`Signal: ${data.divergence.type.replace(/_/g, ' ')}`}
+      >
+        <div style={{ fontSize: '1.5rem' }} aria-hidden="true">{signalBadge.icon}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ 
             fontSize: '0.7rem', 
             fontWeight: 700, 
@@ -178,36 +199,60 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
       </div>
 
       {/* Retail Sentiment */}
-      <div className="compact-section">
-        <div className="compact-section-title" style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <span>👥 Retail Sentiment</span>
-          <span style={{ 
-            background: `${getRetailStatusColor(data.retail_sentiment.status)}20`,
-            color: getRetailStatusColor(data.retail_sentiment.status),
-            padding: '2px 8px',
-            borderRadius: '4px',
-            fontSize: '0.65rem',
-            fontWeight: 700
-          }}>
+      <div className="compact-section" role="region" aria-labelledby="retail-sentiment-title">
+        <div 
+          className="compact-section-title" 
+          id="retail-sentiment-title"
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <span><span aria-hidden="true">👥</span> <span>Retail Sentiment</span></span>
+          <span 
+            role="status"
+            aria-label={`Retail sentiment status: ${data.retail_sentiment.status}`}
+            style={{ 
+              background: `${getRetailStatusColor(data.retail_sentiment.status)}20`,
+              color: getRetailStatusColor(data.retail_sentiment.status),
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              fontWeight: 700
+            }}
+          >
             {data.retail_sentiment.status}
           </span>
         </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-          {/* Retail Metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+          {/* Retail Metrics with Progress Bars */}
+          <div className="sentiment-metrics-grid">
             <div style={{ 
               background: 'rgba(255, 255, 255, 0.03)', 
               padding: '0.5rem', 
               borderRadius: '6px',
               border: '1px solid var(--border-color)'
             }}>
-              <div className="compact-label">FOMO Score</div>
+              <div className="compact-label" aria-label="FOMO Score">FOMO Score</div>
               <div className="compact-value">{data.retail_sentiment.fomo_score.toFixed(1)}</div>
+              {/* Progress Bar */}
+              <div style={{ 
+                height: '3px', 
+                background: 'rgba(255,255,255,0.1)', 
+                borderRadius: '2px',
+                marginTop: '6px',
+                overflow: 'hidden'
+              }} role="progressbar" aria-valuenow={data.retail_sentiment.fomo_score} aria-valuemin={0} aria-valuemax={10}>
+                <div style={{ 
+                  width: `${Math.min((data.retail_sentiment.fomo_score / 10) * 100, 100)}%`,
+                  height: '100%',
+                  background: getRetailStatusColor(data.retail_sentiment.status),
+                  borderRadius: '2px',
+                  transition: 'width 0.3s ease'
+                }} />
+              </div>
             </div>
             <div style={{ 
               background: 'rgba(255, 255, 255, 0.03)', 
@@ -215,8 +260,24 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
               borderRadius: '6px',
               border: '1px solid var(--border-color)'
             }}>
-              <div className="compact-label">Frequency</div>
+              <div className="compact-label" aria-label="Frequency Score">Frequency</div>
               <div className="compact-value">{data.retail_sentiment.frequency_score.toFixed(1)}</div>
+              {/* Progress Bar */}
+              <div style={{ 
+                height: '3px', 
+                background: 'rgba(255,255,255,0.1)', 
+                borderRadius: '2px',
+                marginTop: '6px',
+                overflow: 'hidden'
+              }} role="progressbar" aria-valuenow={data.retail_sentiment.frequency_score} aria-valuemin={0} aria-valuemax={10}>
+                <div style={{ 
+                  width: `${Math.min((data.retail_sentiment.frequency_score / 10) * 100, 100)}%`,
+                  height: '100%',
+                  background: getRetailStatusColor(data.retail_sentiment.status),
+                  borderRadius: '2px',
+                  transition: 'width 0.3s ease'
+                }} />
+              </div>
             </div>
           </div>
           
@@ -235,39 +296,73 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
       </div>
 
       {/* Bandar/Smart Money Sentiment */}
-      <div className="compact-section">
-        <div className="compact-section-title" style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <span>💼 Smart Money</span>
-          <span style={{ 
-            background: `${getBandarStatusColor(data.bandar_sentiment.status)}20`,
-            color: getBandarStatusColor(data.bandar_sentiment.status),
-            padding: '2px 8px',
-            borderRadius: '4px',
-            fontSize: '0.65rem',
-            fontWeight: 700
-          }}>
+      <div className="compact-section" role="region" aria-labelledby="smart-money-title">
+        <div 
+          className="compact-section-title" 
+          id="smart-money-title"
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <span><span aria-hidden="true">💼</span> <span>Smart Money</span></span>
+          <span 
+            role="status"
+            aria-label={`Smart money sentiment status: ${data.bandar_sentiment.status}`}
+            style={{ 
+              background: `${getBandarStatusColor(data.bandar_sentiment.status)}20`,
+              color: getBandarStatusColor(data.bandar_sentiment.status),
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              fontWeight: 700
+            }}
+          >
             {data.bandar_sentiment.status}
           </span>
         </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-          {/* Bandar Metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+          {/* Bandar Metrics with Trend Arrows */}
+          <div className="sentiment-metrics-grid">
             <div style={{ 
               background: 'rgba(255, 255, 255, 0.03)', 
               padding: '0.5rem', 
               borderRadius: '6px',
               border: '1px solid var(--border-color)'
             }}>
-              <div className="compact-label">Accumulation</div>
-              <div className="compact-value" style={{ 
-                color: data.bandar_sentiment.accumulation_score > 0 ? '#38ef7d' : '#f5576c' 
-              }}>
+              <div className="compact-label" aria-label="Accumulation Score">Accumulation</div>
+              <div 
+                className="compact-value" 
+                style={{ 
+                  color: data.bandar_sentiment.accumulation_score > 0 ? '#38ef7d' : '#f5576c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+                aria-label={`Accumulation score: ${data.bandar_sentiment.accumulation_score > 0 ? 'positive' : 'negative'} ${data.bandar_sentiment.accumulation_score.toFixed(1)}`}
+              >
+                <span aria-hidden="true" style={{ fontSize: '0.9rem' }}>
+                  {data.bandar_sentiment.accumulation_score > 0 ? '↑' : '↓'}
+                </span>
                 {data.bandar_sentiment.accumulation_score > 0 ? '+' : ''}{data.bandar_sentiment.accumulation_score.toFixed(1)}
+              </div>
+              {/* Progress Bar */}
+              <div style={{ 
+                height: '3px', 
+                background: 'rgba(255,255,255,0.1)', 
+                borderRadius: '2px',
+                marginTop: '6px',
+                overflow: 'hidden'
+              }} role="progressbar" aria-valuenow={Math.abs(data.bandar_sentiment.accumulation_score)} aria-valuemin={0} aria-valuemax={10}>
+                <div style={{ 
+                  width: `${Math.min((Math.abs(data.bandar_sentiment.accumulation_score) / 10) * 100, 100)}%`,
+                  height: '100%',
+                  background: data.bandar_sentiment.accumulation_score > 0 ? '#38ef7d' : '#f5576c',
+                  borderRadius: '2px',
+                  transition: 'width 0.3s ease'
+                }} />
               </div>
             </div>
             <div style={{ 
@@ -276,11 +371,37 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
               borderRadius: '6px',
               border: '1px solid var(--border-color)'
             }}>
-              <div className="compact-label">Foreign Flow</div>
-              <div className="compact-value" style={{ 
-                color: data.bandar_sentiment.foreign_flow > 0 ? '#38ef7d' : '#f5576c' 
-              }}>
+              <div className="compact-label" aria-label="Foreign Flow">Foreign Flow</div>
+              <div 
+                className="compact-value" 
+                style={{ 
+                  color: data.bandar_sentiment.foreign_flow > 0 ? '#38ef7d' : '#f5576c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+                aria-label={`Foreign flow: ${data.bandar_sentiment.foreign_flow > 0 ? 'positive' : 'negative'} ${(data.bandar_sentiment.foreign_flow / 1_000_000_000).toFixed(2)} billion`}
+              >
+                <span aria-hidden="true" style={{ fontSize: '0.9rem' }}>
+                  {data.bandar_sentiment.foreign_flow > 0 ? '↑' : '↓'}
+                </span>
                 {data.bandar_sentiment.foreign_flow > 0 ? '+' : ''}{(data.bandar_sentiment.foreign_flow / 1_000_000_000).toFixed(2)}B
+              </div>
+              {/* Progress Bar */}
+              <div style={{ 
+                height: '3px', 
+                background: 'rgba(255,255,255,0.1)', 
+                borderRadius: '2px',
+                marginTop: '6px',
+                overflow: 'hidden'
+              }} role="progressbar" aria-valuenow={Math.abs(data.bandar_sentiment.foreign_flow / 1_000_000_000)} aria-valuemin={0} aria-valuemax={10}>
+                <div style={{ 
+                  width: `${Math.min((Math.abs(data.bandar_sentiment.foreign_flow / 1_000_000_000) / 10) * 100, 100)}%`,
+                  height: '100%',
+                  background: data.bandar_sentiment.foreign_flow > 0 ? '#38ef7d' : '#f5576c',
+                  borderRadius: '2px',
+                  transition: 'width 0.3s ease'
+                }} />
               </div>
             </div>
           </div>
@@ -300,8 +421,10 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
       </div>
 
       {/* Recommendation */}
-      <div className="compact-section">
-        <div className="compact-section-title">💡 Recommendation</div>
+      <div className="compact-section" role="region" aria-labelledby="recommendation-title">
+        <div className="compact-section-title" id="recommendation-title">
+          <span aria-hidden="true">💡</span> <span>Recommendation</span>
+        </div>
         <div style={{ 
           fontSize: '0.7rem', 
           color: 'var(--text-primary)',
@@ -310,7 +433,7 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
           background: 'rgba(102, 126, 234, 0.1)',
           borderRadius: '8px',
           border: '1px solid rgba(102, 126, 234, 0.2)'
-        }}>
+        }} role="note">
           {data.recommendation}
         </div>
       </div>
@@ -329,6 +452,7 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
           target="_blank" 
           rel="noopener noreferrer"
           style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}
+          aria-label="View DataSaham.io API documentation"
         >
           DataSaham.io
         </a>
