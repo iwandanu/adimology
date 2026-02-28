@@ -126,20 +126,6 @@ const Navbar = () => {
                 </Link>
               </>
             )}
-            <Link 
-              href="/retail-opportunity" 
-              style={{
-                textDecoration: 'none',
-                color: pathname === '/retail-opportunity' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: pathname === '/retail-opportunity' ? 600 : 400,
-                fontSize: '0.9rem',
-                borderBottom: pathname === '/retail-opportunity' ? '2px solid var(--accent-primary)' : '2px solid transparent',
-                paddingBottom: '2px',
-                transition: 'all 0.2s'
-              }}
-            >
-              Retail Opportunity
-            </Link>
             <div 
               style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
               onMouseEnter={() => setIsScreenerDropdownOpen(true)}
@@ -154,10 +140,10 @@ const Navbar = () => {
                   alignItems: 'center',
                   gap: '0.25rem',
                   textDecoration: 'none',
-                  color: pathname.startsWith('/minervini-screener') ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  fontWeight: pathname.startsWith('/minervini-screener') ? 600 : 400,
+                  color: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontWeight: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 600 : 400,
                   fontSize: '0.9rem',
-                  borderBottom: pathname.startsWith('/minervini-screener') ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                  borderBottom: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? '2px solid var(--accent-primary)' : '2px solid transparent',
                   paddingBottom: '2px',
                   transition: 'all 0.2s'
                 }}
@@ -199,6 +185,25 @@ const Navbar = () => {
                     }}
                   >
                     Minervini Screener
+                  </Link>
+                  <Link
+                    href="/retail-opportunity"
+                    style={{
+                      display: 'block',
+                      padding: '0.75rem 1rem',
+                      textDecoration: 'none',
+                      color: pathname === '/retail-opportunity' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      fontSize: '0.9rem',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'var(--bg-secondary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    Retail Opportunity
                   </Link>
                 </div>
               )}
@@ -448,25 +453,11 @@ const Navbar = () => {
                 </Link>
               </>
             )}
-            <Link 
-              href="/retail-opportunity" 
-              onClick={() => setIsMenuOpen(false)}
-              style={{
-                textDecoration: 'none',
-                color: pathname === '/retail-opportunity' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: pathname === '/retail-opportunity' ? 600 : 400,
-                fontSize: '1rem',
-                padding: '0.5rem 0',
-                transition: 'all 0.2s'
-              }}
-            >
-              Retail Opportunity
-            </Link>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div 
                 style={{
-                  color: pathname.startsWith('/minervini-screener') ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  fontWeight: pathname.startsWith('/minervini-screener') ? 600 : 400,
+                  color: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontWeight: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 600 : 400,
                   fontSize: '1rem',
                   padding: '0.5rem 0',
                   cursor: 'pointer'
@@ -479,20 +470,36 @@ const Navbar = () => {
                 </div>
               </div>
               {isScreenerDropdownOpen && (
-                <Link 
-                  href="/minervini-screener" 
-                  onClick={() => setIsMenuOpen(false)}
-                  style={{
-                    textDecoration: 'none',
-                    color: pathname === '/minervini-screener' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    fontWeight: pathname === '/minervini-screener' ? 600 : 400,
-                    fontSize: '0.9rem',
-                    padding: '0.25rem 0 0.25rem 1rem',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  Minervini Screener
-                </Link>
+                <>
+                  <Link 
+                    href="/minervini-screener" 
+                    onClick={() => setIsMenuOpen(false)}
+                    style={{
+                      textDecoration: 'none',
+                      color: pathname === '/minervini-screener' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      fontWeight: pathname === '/minervini-screener' ? 600 : 400,
+                      fontSize: '0.9rem',
+                      padding: '0.25rem 0 0.25rem 1rem',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Minervini Screener
+                  </Link>
+                  <Link 
+                    href="/retail-opportunity" 
+                    onClick={() => setIsMenuOpen(false)}
+                    style={{
+                      textDecoration: 'none',
+                      color: pathname === '/retail-opportunity' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      fontWeight: pathname === '/retail-opportunity' ? 600 : 400,
+                      fontSize: '0.9rem',
+                      padding: '0.25rem 0 0.25rem 1rem',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Retail Opportunity
+                  </Link>
+                </>
               )}
             </div>
             <Link 
