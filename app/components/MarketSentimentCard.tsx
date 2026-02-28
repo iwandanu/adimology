@@ -1,12 +1,6 @@
 'use client';
 
-interface MarketSentimentCardProps {
-  emiten: string;
-  data: MarketSentimentData | null;
-  loading?: boolean;
-}
-
-interface RetailSentiment {
+export interface RetailSentiment {
   volume_participation: number;
   fomo_score: number;
   small_lot_percentage: number;
@@ -15,7 +9,7 @@ interface RetailSentiment {
   description: string;
 }
 
-interface BandarSentiment {
+export interface BandarSentiment {
   institutional_flow: number;
   foreign_flow: number;
   accumulation_score: number;
@@ -25,7 +19,7 @@ interface BandarSentiment {
   description: string;
 }
 
-interface MarketSentimentData {
+export interface MarketSentimentData {
   symbol: string;
   retail_sentiment: RetailSentiment;
   bandar_sentiment: BandarSentiment;
@@ -36,6 +30,12 @@ interface MarketSentimentData {
   };
   recommendation: string;
   analysis_period_days: number;
+}
+
+interface MarketSentimentCardProps {
+  emiten: string;
+  data: MarketSentimentData | null;
+  loading?: boolean;
 }
 
 export default function MarketSentimentCard({ emiten, data, loading }: MarketSentimentCardProps) {

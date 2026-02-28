@@ -14,7 +14,7 @@ import TechnicalAnalysisCard from './TechnicalAnalysisCard';
 import TradingPlanCard from './TradingPlanCard';
 import CorporateActionsCard from './CorporateActionsCard';
 import ConnectRequiredCard from './ConnectRequiredCard';
-import MarketSentimentCard from './MarketSentimentCard';
+import MarketSentimentCard, { type MarketSentimentData } from './MarketSentimentCard';
 
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -86,7 +86,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   const [corporateActionsLoading, setCorporateActionsLoading] = useState(false);
   const [riskRewardData, setRiskRewardData] = useState<Record<string, any> | null>(null);
   const [riskRewardLoading, setRiskRewardLoading] = useState(false);
-  const [marketSentimentData, setMarketSentimentData] = useState<Record<string, any> | null>(null);
+  const [marketSentimentData, setMarketSentimentData] = useState<MarketSentimentData | null>(null);
   const [marketSentimentLoading, setMarketSentimentLoading] = useState(false);
 
   // Agent Story state
@@ -266,7 +266,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         .then((r) => r.json())
         .then((msJson) => {
           if (msJson.success) {
-            const payload = (msJson.data?.data as any) ?? msJson.data;
+            const payload = (msJson.data?.data as MarketSentimentData) ?? (msJson.data as MarketSentimentData);
             setMarketSentimentData(payload || null);
           }
         })
