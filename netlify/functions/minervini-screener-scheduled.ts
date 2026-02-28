@@ -46,18 +46,16 @@ export default async (req: Request) => {
 
     // Update job log with success
     if (jobLogId) {
-      await updateBackgroundJobLog(
-        jobLogId,
-        'completed',
-        count,
-        undefined,
-        JSON.stringify({
+      await updateBackgroundJobLog(jobLogId, {
+        status: 'completed',
+        success_count: count,
+        metadata: {
           scannedAt,
           breakdown: { score8, score7, score6 },
           universe: 'syariah',
           minScore: 6,
-        })
-      );
+        },
+      });
     }
 
     const elapsed = Date.now() - startTime;
@@ -84,7 +82,10 @@ export default async (req: Request) => {
     // Update job log with error
     if (jobLogId) {
       try {
-        await updateBackgroundJobLog(jobLogId, 'error', 0, errorMsg);
+        await updateBackgroundJobLog(jobLogId, {
+          status: 'failed',
+          error_message: errorMsg,
+        });
       } catch (logError) {
         console.error('[Minervini Scheduled] Failed to update job log with error:', logError);
       }
