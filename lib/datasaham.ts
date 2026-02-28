@@ -326,7 +326,24 @@ export interface DatasahamSector {
 }
 
 export async function fetchDatasahamSectors(): Promise<DatasahamSector[] | null> {
-  return fetchDatasaham<DatasahamSector[]>('/api/sectors/');
+  const result = await fetchDatasaham<DatasahamSector[] | { sectors: DatasahamSector[] }>(
+    '/api/sectors/'
+  );
+  
+  if (!result) return null;
+  
+  // Handle if result is wrapped in an object
+  if (Array.isArray(result)) {
+    return result;
+  }
+  
+  // Check if result has a sectors property
+  if (typeof result === 'object' && 'sectors' in result && Array.isArray(result.sectors)) {
+    return result.sectors;
+  }
+  
+  console.warn('[fetchDatasahamSectors] Unexpected response format:', result);
+  return null;
 }
 
 /**
@@ -361,6 +378,12 @@ export async function buildSectorMapFromDatasaham(
   // Fetch all sectors first
   const sectors = await fetchDatasahamSectors();
   if (!sectors) return sectorMap;
+  
+  // Ensure sectors is an array
+  if (!Array.isArray(sectors)) {
+    console.warn('[buildSectorMapFromDatasaham] sectors is not an array:', typeof sectors);
+    return sectorMap;
+  }
   
   // For each sector, fetch companies and match symbols
   for (const sector of sectors) {
