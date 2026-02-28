@@ -254,6 +254,26 @@ export async function fetchRetailSectorRotation(): Promise<unknown | null> {
 }
 
 /**
+ * Market Sentiment helpers (Datasaham.io)
+ * Retail vs Bandar sentiment analysis and IPO momentum tracking.
+ */
+
+export async function fetchMarketSentiment(
+  symbol: string,
+  days?: number
+): Promise<unknown | null> {
+  if (!symbol) return null;
+  const params: Record<string, string | number> = {};
+  if (days && Number.isFinite(days)) {
+    params.days = days;
+  }
+  return fetchDatasaham<unknown>(
+    `/api/analysis/sentiment/${encodeURIComponent(symbol.toUpperCase())}`,
+    params
+  );
+}
+
+/**
  * Advanced Analytics helpers (Datasaham.io)
  * Correlation matrix and multi-market screener.
  */

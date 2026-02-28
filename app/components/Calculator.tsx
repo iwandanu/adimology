@@ -14,6 +14,7 @@ import TechnicalAnalysisCard from './TechnicalAnalysisCard';
 import TradingPlanCard from './TradingPlanCard';
 import CorporateActionsCard from './CorporateActionsCard';
 import ConnectRequiredCard from './ConnectRequiredCard';
+import MarketSentimentCard from './MarketSentimentCard';
 
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -85,6 +86,8 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
   const [corporateActionsLoading, setCorporateActionsLoading] = useState(false);
   const [riskRewardData, setRiskRewardData] = useState<Record<string, any> | null>(null);
   const [riskRewardLoading, setRiskRewardLoading] = useState(false);
+  const [marketSentimentData, setMarketSentimentData] = useState<Record<string, any> | null>(null);
+  const [marketSentimentLoading, setMarketSentimentLoading] = useState(false);
 
   // Agent Story state
   const [agentStories, setAgentStories] = useState<AgentStoryResult[]>([]);
@@ -146,6 +149,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
     setTradingPlanData(null);
     setCorporateActionsData(null);
     setRiskRewardData(null);
+    setMarketSentimentData(null);
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
@@ -255,6 +259,19 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
         })
         .catch(console.error)
         .finally(() => setRiskRewardLoading(false));
+
+      // Fetch Market Sentiment
+      setMarketSentimentLoading(true);
+      fetch(`/api/market-sentiment?symbol=${emitenUpper}&days=7`)
+        .then((r) => r.json())
+        .then((msJson) => {
+          if (msJson.success) {
+            const payload = (msJson.data?.data as any) ?? msJson.data;
+            setMarketSentimentData(payload || null);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setMarketSentimentLoading(false));
 
       // Fetch existing Agent Story if available
       try {
@@ -812,7 +829,7 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
               )}
             </div>
 
-            {/* Row 2: Corporate Actions + Trading Plan (alternative by Datasaham.io) */}
+            {/* Row 2: Corporate Actions + Market Sentiment */}
             <div
               style={{
                 width: '100%',
@@ -828,83 +845,11 @@ export default function Calculator({ selectedStock }: CalculatorProps) {
                   loading={corporateActionsLoading}
                 />
               )}
-              {(riskRewardData || riskRewardLoading) && (
-                <div className="glass-card">
-                  <h3 style={{ marginBottom: '0.75rem' }}>
-                    Trading Plan (alternative by Datasaham.io)
-                  </h3>
-                  {riskRewardLoading && (
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Loading...</p>
-                  )}
-                  {riskRewardData && !riskRewardLoading && (
-                    <div
-                      style={{
-                        fontSize: '0.8rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.4rem',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>Harga sekarang</span>
-                        <span style={{ fontWeight: 600 }}>
-                          Rp {Number(riskRewardData.current_price ?? 0).toLocaleString('id-ID')}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>Stop loss rekomendasi</span>
-                        <span style={{ fontWeight: 600 }}>
-                          Rp{' '}
-                          {Number(
-                            riskRewardData.stop_loss_recommended ?? 0
-                          ).toLocaleString('id-ID')}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>Risk/Reward ratio</span>
-                        <span style={{ fontWeight: 600 }}>
-                          {Number(riskRewardData.risk_reward_ratio ?? 0).toFixed(2)} (
-                          {riskRewardData.recommendation || '-'})
-                        </span>
-                      </div>
-                      {Array.isArray(riskRewardData.target_prices) && (
-                        <div style={{ marginTop: '0.4rem' }}>
-                          <div
-                            style={{
-                              fontSize: '0.75rem',
-                              color: 'var(--text-muted)',
-                              marginBottom: '0.25rem',
-                            }}
-                          >
-                            Target Price
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                            {riskRewardData.target_prices.slice(0, 3).map((t: any, idx: number) => (
-                              <div
-                                key={idx}
-                                style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  fontSize: '0.78rem',
-                                }}
-                              >
-                                <span>
-                                  Rp {Number(t.level ?? 0).toLocaleString('id-ID')} ({t.probability}
-                                  %)
-                                </span>
-                                <span>
-                                  Reward {Number(t.reward ?? 0).toFixed(2)}% • RR{' '}
-                                  {Number(t.risk_reward ?? 0).toFixed(2)}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+              <MarketSentimentCard
+                emiten={result.input.emiten}
+                data={marketSentimentData}
+                loading={marketSentimentLoading}
+              />
             </div>
             </div>
           </div>
