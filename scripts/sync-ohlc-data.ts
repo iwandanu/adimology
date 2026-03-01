@@ -144,23 +144,21 @@ async function syncOHLCData(options: SyncOptions) {
     const batch = records.slice(i, i + batchSize);
     
     // Use upsert to handle duplicates
-    const { data, error, count } = await supabase
+    const { error } = await supabase
       .from('ohlc_historical_data')
       .upsert(batch, {
         onConflict: 'symbol,date',
         ignoreDuplicates: false // Update existing records
-      })
-      .select('id', { count: 'exact' });
+      });
 
     if (error) {
       console.error(`❌ Error inserting batch ${i / batchSize + 1}:`, error.message);
       continue;
     }
 
-    const batchInserted = count || batch.length;
-    inserted += batchInserted;
+    inserted += batch.length;
     
-    console.log(`  Batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(records.length / batchSize)}: ${batchInserted} records`);
+    console.log(`  Batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(records.length / batchSize)}: ${batch.length} records`);
   }
 
   // Summary
