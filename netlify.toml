@@ -14,5 +14,8 @@
 [functions."minervini-screener-scheduled"]
   schedule = "0 1,9 * * *"
 
+[functions."ohlc-sync-daily"]
+  schedule = "0 0 * * *"
+
 [functions."generate-pdf-report-background"]
   background = true
