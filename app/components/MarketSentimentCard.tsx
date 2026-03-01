@@ -236,7 +236,7 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
               border: '1px solid var(--border-color)'
             }}>
               <div className="compact-label" aria-label="FOMO Score">FOMO Score</div>
-              <div className="compact-value">{data.retail_sentiment.fomo_score.toFixed(1)}</div>
+              <div className="compact-value">{(data.retail_sentiment?.fomo_score ?? 0).toFixed(1)}</div>
               {/* Progress Bar */}
               <div style={{ 
                 height: '3px', 
@@ -244,11 +244,11 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
                 borderRadius: '2px',
                 marginTop: '6px',
                 overflow: 'hidden'
-              }} role="progressbar" aria-valuenow={data.retail_sentiment.fomo_score} aria-valuemin={0} aria-valuemax={10}>
+              }} role="progressbar" aria-valuenow={data.retail_sentiment?.fomo_score ?? 0} aria-valuemin={0} aria-valuemax={10}>
                 <div style={{ 
-                  width: `${Math.min((data.retail_sentiment.fomo_score / 10) * 100, 100)}%`,
+                  width: `${Math.min(((data.retail_sentiment?.fomo_score ?? 0) / 10) * 100, 100)}%`,
                   height: '100%',
-                  background: getRetailStatusColor(data.retail_sentiment.status),
+                  background: getRetailStatusColor(data.retail_sentiment?.status ?? 'neutral'),
                   borderRadius: '2px',
                   transition: 'width 0.3s ease'
                 }} />
@@ -261,7 +261,7 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
               border: '1px solid var(--border-color)'
             }}>
               <div className="compact-label" aria-label="Frequency Score">Frequency</div>
-              <div className="compact-value">{data.retail_sentiment.frequency_score.toFixed(1)}</div>
+              <div className="compact-value">{(data.retail_sentiment?.frequency_score ?? 0).toFixed(1)}</div>
               {/* Progress Bar */}
               <div style={{ 
                 height: '3px', 
@@ -269,11 +269,11 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
                 borderRadius: '2px',
                 marginTop: '6px',
                 overflow: 'hidden'
-              }} role="progressbar" aria-valuenow={data.retail_sentiment.frequency_score} aria-valuemin={0} aria-valuemax={10}>
+              }} role="progressbar" aria-valuenow={data.retail_sentiment?.frequency_score ?? 0} aria-valuemin={0} aria-valuemax={10}>
                 <div style={{ 
-                  width: `${Math.min((data.retail_sentiment.frequency_score / 10) * 100, 100)}%`,
+                  width: `${Math.min(((data.retail_sentiment?.frequency_score ?? 0) / 10) * 100, 100)}%`,
                   height: '100%',
-                  background: getRetailStatusColor(data.retail_sentiment.status),
+                  background: getRetailStatusColor(data.retail_sentiment?.status ?? 'neutral'),
                   borderRadius: '2px',
                   transition: 'width 0.3s ease'
                 }} />
@@ -288,9 +288,9 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
             padding: '0.4rem 0.6rem',
             background: 'rgba(255, 255, 255, 0.02)',
             borderRadius: '6px',
-            borderLeft: `3px solid ${getRetailStatusColor(data.retail_sentiment.status)}`
+            borderLeft: `3px solid ${getRetailStatusColor(data.retail_sentiment?.status ?? 'neutral')}`
           }}>
-            {data.retail_sentiment.description}
+            {data.retail_sentiment?.description ?? 'No description available'}
           </div>
         </div>
       </div>
@@ -336,17 +336,17 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
               <div 
                 className="compact-value" 
                 style={{ 
-                  color: data.bandar_sentiment.accumulation_score > 0 ? '#38ef7d' : '#f5576c',
+                  color: (data.bandar_sentiment?.accumulation_score ?? 0) > 0 ? '#38ef7d' : '#f5576c',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.25rem'
                 }}
-                aria-label={`Accumulation score: ${data.bandar_sentiment.accumulation_score > 0 ? 'positive' : 'negative'} ${data.bandar_sentiment.accumulation_score.toFixed(1)}`}
+                aria-label={`Accumulation score: ${(data.bandar_sentiment?.accumulation_score ?? 0) > 0 ? 'positive' : 'negative'} ${(data.bandar_sentiment?.accumulation_score ?? 0).toFixed(1)}`}
               >
                 <span aria-hidden="true" style={{ fontSize: '0.9rem' }}>
-                  {data.bandar_sentiment.accumulation_score > 0 ? '↑' : '↓'}
+                  {(data.bandar_sentiment?.accumulation_score ?? 0) > 0 ? '↑' : '↓'}
                 </span>
-                {data.bandar_sentiment.accumulation_score > 0 ? '+' : ''}{data.bandar_sentiment.accumulation_score.toFixed(1)}
+                {(data.bandar_sentiment?.accumulation_score ?? 0) > 0 ? '+' : ''}{(data.bandar_sentiment?.accumulation_score ?? 0).toFixed(1)}
               </div>
               {/* Progress Bar */}
               <div style={{ 
@@ -355,11 +355,11 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
                 borderRadius: '2px',
                 marginTop: '6px',
                 overflow: 'hidden'
-              }} role="progressbar" aria-valuenow={Math.abs(data.bandar_sentiment.accumulation_score)} aria-valuemin={0} aria-valuemax={10}>
+              }} role="progressbar" aria-valuenow={Math.abs(data.bandar_sentiment?.accumulation_score ?? 0)} aria-valuemin={0} aria-valuemax={10}>
                 <div style={{ 
-                  width: `${Math.min((Math.abs(data.bandar_sentiment.accumulation_score) / 10) * 100, 100)}%`,
+                  width: `${Math.min((Math.abs(data.bandar_sentiment?.accumulation_score ?? 0) / 10) * 100, 100)}%`,
                   height: '100%',
-                  background: data.bandar_sentiment.accumulation_score > 0 ? '#38ef7d' : '#f5576c',
+                  background: (data.bandar_sentiment?.accumulation_score ?? 0) > 0 ? '#38ef7d' : '#f5576c',
                   borderRadius: '2px',
                   transition: 'width 0.3s ease'
                 }} />
@@ -375,17 +375,17 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
               <div 
                 className="compact-value" 
                 style={{ 
-                  color: data.bandar_sentiment.foreign_flow > 0 ? '#38ef7d' : '#f5576c',
+                  color: (data.bandar_sentiment?.foreign_flow ?? 0) > 0 ? '#38ef7d' : '#f5576c',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.25rem'
                 }}
-                aria-label={`Foreign flow: ${data.bandar_sentiment.foreign_flow > 0 ? 'positive' : 'negative'} ${(data.bandar_sentiment.foreign_flow / 1_000_000_000).toFixed(2)} billion`}
+                aria-label={`Foreign flow: ${(data.bandar_sentiment?.foreign_flow ?? 0) > 0 ? 'positive' : 'negative'} ${((data.bandar_sentiment?.foreign_flow ?? 0) / 1_000_000_000).toFixed(2)} billion`}
               >
                 <span aria-hidden="true" style={{ fontSize: '0.9rem' }}>
-                  {data.bandar_sentiment.foreign_flow > 0 ? '↑' : '↓'}
+                  {(data.bandar_sentiment?.foreign_flow ?? 0) > 0 ? '↑' : '↓'}
                 </span>
-                {data.bandar_sentiment.foreign_flow > 0 ? '+' : ''}{(data.bandar_sentiment.foreign_flow / 1_000_000_000).toFixed(2)}B
+                {(data.bandar_sentiment?.foreign_flow ?? 0) > 0 ? '+' : ''}{((data.bandar_sentiment?.foreign_flow ?? 0) / 1_000_000_000).toFixed(2)}B
               </div>
               {/* Progress Bar */}
               <div style={{ 
@@ -394,11 +394,11 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
                 borderRadius: '2px',
                 marginTop: '6px',
                 overflow: 'hidden'
-              }} role="progressbar" aria-valuenow={Math.abs(data.bandar_sentiment.foreign_flow / 1_000_000_000)} aria-valuemin={0} aria-valuemax={10}>
+              }} role="progressbar" aria-valuenow={Math.abs((data.bandar_sentiment?.foreign_flow ?? 0) / 1_000_000_000)} aria-valuemin={0} aria-valuemax={10}>
                 <div style={{ 
-                  width: `${Math.min((Math.abs(data.bandar_sentiment.foreign_flow / 1_000_000_000) / 10) * 100, 100)}%`,
+                  width: `${Math.min((Math.abs((data.bandar_sentiment?.foreign_flow ?? 0) / 1_000_000_000) / 10) * 100, 100)}%`,
                   height: '100%',
-                  background: data.bandar_sentiment.foreign_flow > 0 ? '#38ef7d' : '#f5576c',
+                  background: (data.bandar_sentiment?.foreign_flow ?? 0) > 0 ? '#38ef7d' : '#f5576c',
                   borderRadius: '2px',
                   transition: 'width 0.3s ease'
                 }} />
@@ -413,9 +413,9 @@ export default function MarketSentimentCard({ emiten, data, loading }: MarketSen
             padding: '0.4rem 0.6rem',
             background: 'rgba(255, 255, 255, 0.02)',
             borderRadius: '6px',
-            borderLeft: `3px solid ${getBandarStatusColor(data.bandar_sentiment.status)}`
+            borderLeft: `3px solid ${getBandarStatusColor(data.bandar_sentiment?.status ?? 'neutral')}`
           }}>
-            {data.bandar_sentiment.description}
+            {data.bandar_sentiment?.description ?? 'No description available'}
           </div>
         </div>
       </div>
