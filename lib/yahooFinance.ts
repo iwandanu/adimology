@@ -8,7 +8,9 @@ import type { OHLCData } from './technical';
 
 const IDX_SUFFIX = '.JK';
 const FETCH_TIMEOUT_MS = 20_000;
-const yahooFinance = new YahooFinance();
+
+// Suppress deprecation notices for historical() API
+const yahooFinance = new YahooFinance({ suppressNotices: ['ripHistorical'] });
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -27,49 +29,32 @@ export async function fetchYahooHistorical(
 
   const endDate = new Date();
   const startDate = new Date();
-  startDate.setDate(startDate.getDate() - daysBack);
+  
+  // Yahoo Finance returns trading days only, but we specify calendar days
+  // To get ~252 trading days, we need ~365 calendar days (accounting for weekends + holidays)
+  // Add 50% buffer to ensure we get enough data
+  const calendarDaysNeeded = Math.ceil(daysBack * 1.5);
+  startDate.setDate(startDate.getDate() - calendarDaysNeeded);
+  
   const period1 = startDate.toISOString().split('T')[0];
   const period2 = endDate.toISOString().split('T')[0];
 
   try {
-    // Try historical API first (simpler, often more reliable for international stocks)
-    const history = await withTimeout(
-      yahooFinance.historical(symbol, { period1, period2, interval: '1d' }),
-      FETCH_TIMEOUT_MS
-    );
-
-    if (Array.isArray(history) && history.length > 0) {
-      return history
-        .filter(
-          (row) =>
-            row.open != null &&
-            row.high != null &&
-            row.low != null &&
-            row.close != null
-        )
-        .map((row) => ({
-          date:
-            row.date instanceof Date
-              ? row.date.toISOString().split('T')[0]
-              : String(row.date),
-          open: row.open ?? 0,
-          high: row.high ?? 0,
-          low: row.low ?? 0,
-          close: row.close ?? 0,
-          volume: row.volume ?? undefined,
-        }));
-    }
-
-    // Fallback to chart API
+    // Use chart API directly (historical is deprecated)
     const result = await withTimeout(
       yahooFinance.chart(symbol, { period1, period2, interval: '1d' }),
       FETCH_TIMEOUT_MS
     );
 
     const quotes = result?.quotes;
-    if (!quotes || quotes.length === 0) return [];
+    if (!quotes || quotes.length === 0) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[Yahoo] ${symbol}: No data found, symbol may be delisted`);
+      }
+      return [];
+    }
 
-    return quotes
+    const ohlcData = quotes
       .filter(
         (q) =>
           q.open != null && q.high != null && q.low != null && q.close != null
@@ -83,6 +68,10 @@ export async function fetchYahooHistorical(
         close: q.close ?? 0,
         volume: q.volume ?? undefined,
       }));
+    
+    console.log(`[Yahoo] ${symbol}: Received ${ohlcData.length} days of data (requested ${daysBack})`);
+    
+    return ohlcData;
   } catch (err) {
     if (process.env.NODE_ENV === 'development') {
       console.warn(`[Yahoo] ${symbol}:`, err instanceof Error ? err.message : err);

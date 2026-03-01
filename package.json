@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "migrate": "node scripts/run-migrations.js",
+    "sync-ohlc": "tsx scripts/sync-ohlc-data.ts",
+    "sync-ohlc:initial": "cross-env SYNC_MODE=initial tsx scripts/sync-ohlc-data.ts",
+    "sync-ohlc:update": "cross-env SYNC_MODE=update tsx scripts/sync-ohlc-data.ts",
     "build": "next build",
     "start": "next start"
   },
@@ -32,6 +35,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
+    "dotenv": "^17.3.1",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "5.9.3"
