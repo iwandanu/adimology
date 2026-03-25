@@ -1,10 +1,10 @@
 /**
  * Datasaham.io IDX API client (Indonesia Stock Exchange)
  * Uses x-api-key header. Set DATASAHAM_API_KEY (or legacy OHLC_DEV_API_KEY) in env.
- * Docs: `https://api.datasaham.io/swagger`
+ * Docs: `https://v2.datasaham.io/swagger`
  */
 
-const DATASAHAM_BASE = 'https://api.datasaham.io';
+const DATASAHAM_BASE = 'https://v2.datasaham.io';
 
 function getApiKey(): string | undefined {
   return process.env.DATASAHAM_API_KEY ?? process.env.OHLC_DEV_API_KEY;
