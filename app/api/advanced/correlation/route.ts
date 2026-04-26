@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchAdvancedCorrelation } from '@/lib/datasaham';
+import { fetchFeatureFlags } from '@/lib/featureFlags';
+import { isAdminRequest } from '@/lib/serverAuth';
 
 export async function GET(request: NextRequest) {
   try {
+    const flags = await fetchFeatureFlags();
+    if (!flags.api_advanced_analytics) {
+      const isAdmin = await isAdminRequest(request);
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'This feature is temporarily disabled.' },
+          { status: 403 }
+        );
+      }
+    }
+
     const { searchParams } = new URL(request.url);
     const symbols = searchParams.get('symbols') ?? '';
     const periodParam = searchParams.get('period_days');

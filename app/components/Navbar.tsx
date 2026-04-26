@@ -11,6 +11,7 @@ import { Github, Menu, X, GitFork, ChevronDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { ADMIN_EMAIL } from '@/lib/config';
 import { useAppUser } from './UserProvider';
+import { useFeatureFlags } from './useFeatureFlags';
 
 const UPSTREAM_REPO = 'https://github.com/bhaktiutama/adimology';
 const FORK_REPO = 'https://github.com/iwandanu/adimology';
@@ -21,6 +22,13 @@ const Navbar = () => {
   const [isScreenerDropdownOpen, setIsScreenerDropdownOpen] = useState(false);
   const { user } = useAppUser();
   const isAdmin = !!user?.email && user.email.toLowerCase() === ADMIN_EMAIL;
+  const { flags } = useFeatureFlags();
+
+  const allow = (key: keyof NonNullable<typeof flags>) => {
+    // If flags haven't loaded yet, default to showing menus (avoid hiding everything due to transient fetch issues).
+    if (!flags) return true;
+    return !!flags[key] || isAdmin;
+  };
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleScreenerDropdown = () => setIsScreenerDropdownOpen(!isScreenerDropdownOpen);
@@ -62,7 +70,7 @@ const Navbar = () => {
             >
               Calculator
             </Link>
-            {user && (
+            {user && allow('menu_search_history') && (
               <>
                 <Link 
                   href="/search-history" 
@@ -78,6 +86,10 @@ const Navbar = () => {
                 >
                   Search History
                 </Link>
+              </>
+            )}
+            {user && allow('menu_performance') && (
+              <>
                 <Link 
                   href="/performance" 
                   style={{
@@ -126,88 +138,94 @@ const Navbar = () => {
                 </Link>
               </>
             )}
-            <div 
-              style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
-              onMouseEnter={() => setIsScreenerDropdownOpen(true)}
-              onMouseLeave={() => setIsScreenerDropdownOpen(false)}
-            >
-              <button
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                  textDecoration: 'none',
-                  color: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  fontWeight: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 600 : 400,
-                  fontSize: '0.9rem',
-                  borderBottom: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? '2px solid var(--accent-primary)' : '2px solid transparent',
-                  paddingBottom: '2px',
-                  transition: 'all 0.2s'
-                }}
+            {allow('menu_screener') && (
+              <div 
+                style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+                onMouseEnter={() => setIsScreenerDropdownOpen(true)}
+                onMouseLeave={() => setIsScreenerDropdownOpen(false)}
               >
-                Screener
-                <ChevronDown size={16} />
-              </button>
-              {isScreenerDropdownOpen && (
-                <div
+                <button
                   style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    marginTop: '0.5rem',
-                    background: 'var(--bg-primary)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    minWidth: '200px',
-                    zIndex: 1000,
-                    padding: '0.5rem 0'
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    textDecoration: 'none',
+                    color: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 600 : 400,
+                    fontSize: '0.9rem',
+                    borderBottom: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                    paddingBottom: '2px',
+                    transition: 'all 0.2s'
                   }}
                 >
-                  <Link
-                    href="/minervini-screener"
+                  Screener
+                  <ChevronDown size={16} />
+                </button>
+                {isScreenerDropdownOpen && (
+                  <div
                     style={{
-                      display: 'block',
-                      padding: '0.75rem 1rem',
-                      textDecoration: 'none',
-                      color: pathname === '/minervini-screener' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                      fontSize: '0.9rem',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--bg-secondary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      marginTop: '0.5rem',
+                      background: 'var(--bg-primary)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                      minWidth: '200px',
+                      zIndex: 1000,
+                      padding: '0.5rem 0'
                     }}
                   >
-                    Minervini Screener
-                  </Link>
-                  <Link
-                    href="/retail-opportunity"
-                    style={{
-                      display: 'block',
-                      padding: '0.75rem 1rem',
-                      textDecoration: 'none',
-                      color: pathname === '/retail-opportunity' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                      fontSize: '0.9rem',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--bg-secondary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                    }}
-                  >
-                    Retail Opportunity
-                  </Link>
-                </div>
-              )}
-            </div>
+                    {allow('menu_minervini_screener') && (
+                      <Link
+                        href="/minervini-screener"
+                        style={{
+                          display: 'block',
+                          padding: '0.75rem 1rem',
+                          textDecoration: 'none',
+                          color: pathname === '/minervini-screener' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                          fontSize: '0.9rem',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'var(--bg-secondary)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        Minervini Screener
+                      </Link>
+                    )}
+                    {allow('menu_retail_opportunity') && (
+                      <Link
+                        href="/retail-opportunity"
+                        style={{
+                          display: 'block',
+                          padding: '0.75rem 1rem',
+                          textDecoration: 'none',
+                          color: pathname === '/retail-opportunity' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                          fontSize: '0.9rem',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'var(--bg-secondary)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        Retail Opportunity
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             {isAdmin && (
               <Link 
                 href="/admin" 
@@ -223,48 +241,50 @@ const Navbar = () => {
                 Admin
               </Link>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <Link 
-                href="/advanced-analytics" 
-                style={{
-                  textDecoration: 'none',
-                  color: pathname.startsWith('/advanced-analytics') ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  fontWeight: pathname.startsWith('/advanced-analytics') ? 600 : 400,
-                  fontSize: '0.9rem',
-                  borderBottom: pathname === '/advanced-analytics' ? '2px solid var(--accent-primary)' : '2px solid transparent',
-                  paddingBottom: '2px',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Advanced Analytics
-              </Link>
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '2px' }}>
-                <Link
-                  href="/advanced-analytics/correlation"
+            {allow('menu_advanced_analytics') && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <Link 
+                  href="/advanced-analytics" 
                   style={{
-                    fontSize: '0.75rem',
                     textDecoration: 'none',
-                    color: pathname === '/advanced-analytics/correlation' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                    color: pathname.startsWith('/advanced-analytics') ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname.startsWith('/advanced-analytics') ? 600 : 400,
+                    fontSize: '0.9rem',
+                    borderBottom: pathname === '/advanced-analytics' ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                    paddingBottom: '2px',
+                    transition: 'all 0.2s'
                   }}
                 >
-                  Correlation Analysis
+                  Advanced Analytics
                 </Link>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>•</span>
-                <Link
-                  href="/advanced-analytics/multi-market-screener"
-                  style={{
-                    fontSize: '0.75rem',
-                    textDecoration: 'none',
-                    color:
-                      pathname === '/advanced-analytics/multi-market-screener'
-                        ? 'var(--accent-primary)'
-                        : 'var(--text-muted)',
-                  }}
-                >
-                  Multi Market Screener
-                </Link>
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '2px' }}>
+                  <Link
+                    href="/advanced-analytics/correlation"
+                    style={{
+                      fontSize: '0.75rem',
+                      textDecoration: 'none',
+                      color: pathname === '/advanced-analytics/correlation' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                    }}
+                  >
+                    Correlation Analysis
+                  </Link>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>•</span>
+                  <Link
+                    href="/advanced-analytics/multi-market-screener"
+                    style={{
+                      fontSize: '0.75rem',
+                      textDecoration: 'none',
+                      color:
+                        pathname === '/advanced-analytics/multi-market-screener'
+                          ? 'var(--accent-primary)'
+                          : 'var(--text-muted)',
+                    }}
+                  >
+                    Multi Market Screener
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
             <div
               style={{
                 display: 'flex',
@@ -389,7 +409,7 @@ const Navbar = () => {
             >
               Calculator
             </Link>
-            {user && (
+            {user && allow('menu_search_history') && (
               <>
                 <Link 
                   href="/search-history" 
@@ -405,6 +425,10 @@ const Navbar = () => {
                 >
                   Search History
                 </Link>
+              </>
+            )}
+            {user && allow('menu_performance') && (
+              <>
                 <Link 
                   href="/performance" 
                   onClick={() => setIsMenuOpen(false)}
@@ -453,69 +477,107 @@ const Navbar = () => {
                 </Link>
               </>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div 
-                style={{
-                  color: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  fontWeight: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 600 : 400,
-                  fontSize: '1rem',
-                  padding: '0.5rem 0',
-                  cursor: 'pointer'
-                }}
-                onClick={() => setIsScreenerDropdownOpen(!isScreenerDropdownOpen)}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  Screener
-                  <ChevronDown size={16} style={{ transform: isScreenerDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+            {allow('menu_screener') && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div 
+                  style={{
+                    color: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname.startsWith('/minervini-screener') || pathname.startsWith('/retail-opportunity') ? 600 : 400,
+                    fontSize: '1rem',
+                    padding: '0.5rem 0',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setIsScreenerDropdownOpen(!isScreenerDropdownOpen)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    Screener
+                    <ChevronDown size={16} style={{ transform: isScreenerDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                  </div>
                 </div>
+                {isScreenerDropdownOpen && (
+                  <>
+                    {allow('menu_minervini_screener') && (
+                      <Link 
+                        href="/minervini-screener" 
+                        onClick={() => setIsMenuOpen(false)}
+                        style={{
+                          textDecoration: 'none',
+                          color: pathname === '/minervini-screener' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          fontWeight: pathname === '/minervini-screener' ? 600 : 400,
+                          fontSize: '0.9rem',
+                          padding: '0.25rem 0 0.25rem 1rem',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Minervini Screener
+                      </Link>
+                    )}
+                    {allow('menu_retail_opportunity') && (
+                      <Link 
+                        href="/retail-opportunity" 
+                        onClick={() => setIsMenuOpen(false)}
+                        style={{
+                          textDecoration: 'none',
+                          color: pathname === '/retail-opportunity' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          fontWeight: pathname === '/retail-opportunity' ? 600 : 400,
+                          fontSize: '0.9rem',
+                          padding: '0.25rem 0 0.25rem 1rem',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Retail Opportunity
+                      </Link>
+                    )}
+                  </>
+                )}
               </div>
-              {isScreenerDropdownOpen && (
-                <>
-                  <Link 
-                    href="/minervini-screener" 
-                    onClick={() => setIsMenuOpen(false)}
-                    style={{
-                      textDecoration: 'none',
-                      color: pathname === '/minervini-screener' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      fontWeight: pathname === '/minervini-screener' ? 600 : 400,
-                      fontSize: '0.9rem',
-                      padding: '0.25rem 0 0.25rem 1rem',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    Minervini Screener
-                  </Link>
-                  <Link 
-                    href="/retail-opportunity" 
-                    onClick={() => setIsMenuOpen(false)}
-                    style={{
-                      textDecoration: 'none',
-                      color: pathname === '/retail-opportunity' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      fontWeight: pathname === '/retail-opportunity' ? 600 : 400,
-                      fontSize: '0.9rem',
-                      padding: '0.25rem 0 0.25rem 1rem',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    Retail Opportunity
-                  </Link>
-                </>
-              )}
-            </div>
-            <Link 
-              href="/advanced-analytics" 
-              onClick={() => setIsMenuOpen(false)}
-              style={{
-                textDecoration: 'none',
-                color: pathname === '/advanced-analytics' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: pathname === '/advanced-analytics' ? 600 : 400,
-                fontSize: '1rem',
-                padding: '0.5rem 0',
-                transition: 'all 0.2s'
-              }}
-            >
-              Advanced Analytics
-            </Link>
+            )}
+            {allow('menu_advanced_analytics') && (
+              <>
+                <Link 
+                  href="/advanced-analytics" 
+                  onClick={() => setIsMenuOpen(false)}
+                  style={{
+                    textDecoration: 'none',
+                    color: pathname === '/advanced-analytics' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname === '/advanced-analytics' ? 600 : 400,
+                    fontSize: '1rem',
+                    padding: '0.5rem 0',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Advanced Analytics
+                </Link>
+                <Link 
+                  href="/advanced-analytics/correlation" 
+                  onClick={() => setIsMenuOpen(false)}
+                  style={{
+                    textDecoration: 'none',
+                    color: pathname === '/advanced-analytics/correlation' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname === '/advanced-analytics/correlation' ? 600 : 400,
+                    fontSize: '0.9rem',
+                    padding: '0.25rem 0 0.25rem 0.75rem',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Correlation Analysis
+                </Link>
+                <Link 
+                  href="/advanced-analytics/multi-market-screener" 
+                  onClick={() => setIsMenuOpen(false)}
+                  style={{
+                    textDecoration: 'none',
+                    color: pathname === '/advanced-analytics/multi-market-screener' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: pathname === '/advanced-analytics/multi-market-screener' ? 600 : 400,
+                    fontSize: '0.9rem',
+                    padding: '0.25rem 0 0.25rem 0.75rem',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Multi Market Screener
+                </Link>
+              </>
+            )}
             {isAdmin && (
               <Link 
                 href="/admin" 
@@ -532,34 +594,6 @@ const Navbar = () => {
                 Admin
               </Link>
             )}
-            <Link 
-              href="/advanced-analytics/correlation" 
-              onClick={() => setIsMenuOpen(false)}
-              style={{
-                textDecoration: 'none',
-                color: pathname === '/advanced-analytics/correlation' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: pathname === '/advanced-analytics/correlation' ? 600 : 400,
-                fontSize: '0.9rem',
-                padding: '0.25rem 0 0.25rem 0.75rem',
-                transition: 'all 0.2s'
-              }}
-            >
-              Correlation Analysis
-            </Link>
-            <Link 
-              href="/advanced-analytics/multi-market-screener" 
-              onClick={() => setIsMenuOpen(false)}
-              style={{
-                textDecoration: 'none',
-                color: pathname === '/advanced-analytics/multi-market-screener' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: pathname === '/advanced-analytics/multi-market-screener' ? 600 : 400,
-                fontSize: '0.9rem',
-                padding: '0.25rem 0 0.25rem 0.75rem',
-                transition: 'all 0.2s'
-              }}
-            >
-              Multi Market Screener
-            </Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0' }}>
               <a
                 href={UPSTREAM_REPO}

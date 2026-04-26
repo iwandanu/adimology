@@ -8,6 +8,8 @@ import {
   fetchDatasahamHistoricalMap,
   type OHLCDataRow,
 } from '@/lib/datasaham';
+import { fetchFeatureFlags } from '@/lib/featureFlags';
+import { isAdminRequest } from '@/lib/serverAuth';
 
 async function resolveUniverseTickers(universe: string): Promise<string[]> {
   const fallback = UNIVERSES[universe] ?? UNIVERSES.lq45;
@@ -46,6 +48,17 @@ const VALID_PRESETS: ScreenerPreset[] = [
 
 export async function GET(request: NextRequest) {
   try {
+    const flags = await fetchFeatureFlags();
+    if (!flags.api_screen) {
+      const isAdmin = await isAdminRequest(request);
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'This feature is temporarily disabled.' },
+          { status: 403 }
+        );
+      }
+    }
+
     const { searchParams } = new URL(request.url);
     const preset = (searchParams.get('preset') || 'oversold') as ScreenerPreset;
     const universe = searchParams.get('universe') || 'lq45';

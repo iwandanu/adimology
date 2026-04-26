@@ -1,10 +1,23 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import {
   fetchRetailMultibaggerScan,
 } from '@/lib/datasaham';
+import { fetchFeatureFlags } from '@/lib/featureFlags';
+import { isAdminRequest } from '@/lib/serverAuth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const flags = await fetchFeatureFlags();
+    if (!flags.api_retail_opportunity) {
+      const isAdmin = await isAdminRequest(request);
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'This feature is temporarily disabled.' },
+          { status: 403 }
+        );
+      }
+    }
+
     const raw = await fetchRetailMultibaggerScan(20);
 
     if (!raw) {

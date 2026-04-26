@@ -38,6 +38,29 @@ type CalculatorResponse =
 
 export async function POST(request: NextRequest) {
   try {
+    // Optional shared-secret protection for Hermes (recommended on Netlify)
+    const requiredKey = process.env.HERMES_API_KEY;
+    const isNetlify = !!process.env.NETLIFY;
+    if (isNetlify && !requiredKey) {
+      const resp: CalculatorResponse = {
+        success: false,
+        error: 'Server misconfigured: missing HERMES_API_KEY',
+        data: null,
+      };
+      return NextResponse.json(resp, { status: 500 });
+    }
+    if (requiredKey) {
+      const provided = request.headers.get('x-hermes-key') || '';
+      if (!provided || provided !== requiredKey) {
+        const resp: CalculatorResponse = {
+          success: false,
+          error: 'Unauthorized',
+          data: null,
+        };
+        return NextResponse.json(resp, { status: 401 });
+      }
+    }
+
     const body: StockInput = await request.json();
     const { emiten, fromDate, toDate } = body;
 
