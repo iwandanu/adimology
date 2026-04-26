@@ -272,3 +272,75 @@ export async function fetchOHLCHistoricalMap(
   }
   return map;
 }
+
+/**
+ * Fetch historical OHLC for a specific ticker list using RapidAPI OHLC.dev backend.
+ * This uses the per-date stock-summary endpoint and filters for requested tickers.
+ */
+export async function fetchOHLCHistoricalMapForTickers(
+  tickers: string[],
+  daysBack: number = 120
+): Promise<Map<string, OHLCDataRow[]>> {
+  const key = getApiKey();
+  const map = new Map<string, OHLCDataRow[]>();
+  if (!key) return map;
+
+  const wanted = new Set(
+    tickers
+      .map((t) => t.trim().toUpperCase().replace('.JK', ''))
+      .filter(Boolean)
+  );
+  if (!wanted.size) return map;
+
+  const dates: string[] = [];
+  const d = new Date();
+  let count = 0;
+  while (count < daysBack) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const yyyymmdd = `${y}${m}${day}`;
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) {
+      dates.push(yyyymmdd);
+      count++;
+    }
+    d.setDate(d.getDate() - 1);
+  }
+
+  for (const date of dates) {
+    const rows = await fetchStockSummary({ date, length: 3000 });
+    for (const row of rows) {
+      const code = String(row.stockCode ?? row.code ?? '').trim().toUpperCase();
+      if (!wanted.has(code)) continue;
+      if (
+        typeof row.open !== 'number' ||
+        typeof row.high !== 'number' ||
+        typeof row.low !== 'number' ||
+        typeof row.close !== 'number'
+      )
+        continue;
+      const dateStr =
+        row.date ??
+        `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+      const item: OHLCDataRow = {
+        date: dateStr,
+        open: row.open,
+        high: row.high,
+        low: row.low,
+        close: row.close,
+        volume: typeof row.volume === 'number' ? row.volume : undefined,
+      };
+      const list = map.get(code) ?? [];
+      list.push(item);
+      map.set(code, list);
+    }
+    await new Promise((r) => setTimeout(r, 1100)); // ~1 req/sec to respect RapidAPI limit
+  }
+
+  for (const [, list] of map) {
+    list.sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  return map;
+}

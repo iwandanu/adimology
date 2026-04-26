@@ -68,7 +68,7 @@ async function syncOHLCData(options: SyncOptions) {
         universe.forEach(s => allUpdateSymbols.add(s));
       });
       symbols = Array.from(allUpdateSymbols);
-      daysBack = 10; // Last 10 calendar days
+      daysBack = 1;// Last 1 calendar day
       console.log(`🔄 Update sync: ${symbols.length} symbols, last ${daysBack} days`);
       break;
 

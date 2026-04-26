@@ -86,7 +86,7 @@ Set up a cron job or run manually:
 npm run sync-ohlc:update
 ```
 
-This updates the last 10 days for all stocks (~1-2 minutes).
+This updates the last 1 day for all stocks (~1-2 minutes).
 
 ## 🧪 Test First (Recommended)
 

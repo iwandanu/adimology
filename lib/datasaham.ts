@@ -10,6 +10,14 @@ function getApiKey(): string | undefined {
   return process.env.DATASAHAM_API_KEY ?? process.env.OHLC_DEV_API_KEY;
 }
 
+function hasRapidApiKey(): boolean {
+  return !!process.env.OHLC_DEV_API_KEY;
+}
+
+function hasDatasahamKey(): boolean {
+  return !!process.env.DATASAHAM_API_KEY;
+}
+
 /**
  * Rate limit state tracking
  */
@@ -222,11 +230,29 @@ export async function fetchDatasahamHistoricalMap(
   daysBack: number = 120
 ): Promise<Map<string, OHLCDataRow[]>> {
   const map = new Map<string, OHLCDataRow[]>();
+  // Prefer RapidAPI (OHLC.dev) when configured for short lookbacks.
+  // RapidAPI usage is per-date (1 request per trading day), so avoid it for large backfills.
+  if (hasRapidApiKey() && daysBack <= 400) {
+    const { fetchOHLCHistoricalMapForTickers } = await import('./ohlcDev');
+    const rapidMap = await fetchOHLCHistoricalMapForTickers(tickers, daysBack);
+    if (rapidMap.size > 0) {
+      // Keep return keys consistent with existing callers (they pass in symbols that may include .JK)
+      const out = new Map<string, OHLCDataRow[]>();
+      for (const t of tickers) {
+        const clean = t.trim().toUpperCase().replace('.JK', '');
+        const rows = rapidMap.get(clean);
+        if (rows?.length) out.set(t.trim().toUpperCase(), rows);
+      }
+      return out;
+    }
+    console.warn('[RapidAPI] Configured but returned no data, falling back...');
+  }
+
   const key = getApiKey();
-  
-  // If no DataSaham API key, use Yahoo Finance directly
-  if (!key) {
-    console.warn('[Datasaham] No API key found, using Yahoo Finance as fallback for all stocks');
+
+  // If no DataSaham key, use Yahoo Finance directly (RapidAPI already tried above)
+  if (!key || !hasDatasahamKey()) {
+    console.warn('[Datasaham] No DATASAHAM_API_KEY configured, using Yahoo Finance fallback');
     return await fetchHistoricalMapFromYahoo(tickers, daysBack);
   }
 
@@ -284,6 +310,16 @@ export async function fetchDatasahamHistoricalMap(
         if (processedCount <= 5) {
           console.log(`[Datasaham] [${processedCount}] ${cleanSymbol} - DataSaham failed, trying Yahoo...`);
         }
+        // Fallback chain: RapidAPI (if configured and short lookback) -> Yahoo
+        if (hasRapidApiKey() && daysBack <= 400) {
+          const { fetchOHLCHistoricalMapForTickers } = await import('./ohlcDev');
+          const rapid = await fetchOHLCHistoricalMapForTickers([cleanSymbol], daysBack);
+          const rows = rapid.get(cleanSymbol);
+          if (rows?.length) {
+            map.set(symbol, rows);
+            continue;
+          }
+        }
         // Fallback to Yahoo Finance for this specific stock
         const yahooSymbol = cleanSymbol + '.JK';
         const yahooData = await fetchYahooForSymbol(yahooSymbol, daysBack);
@@ -301,6 +337,16 @@ export async function fetchDatasahamHistoricalMap(
         datasahamFailures++;
         if (processedCount <= 5) {
           console.log(`[Datasaham] [${processedCount}] ${cleanSymbol} - No candles found, trying Yahoo...`);
+        }
+        // Fallback chain: RapidAPI (if configured and short lookback) -> Yahoo
+        if (hasRapidApiKey() && daysBack <= 400) {
+          const { fetchOHLCHistoricalMapForTickers } = await import('./ohlcDev');
+          const rapid = await fetchOHLCHistoricalMapForTickers([cleanSymbol], daysBack);
+          const rows = rapid.get(cleanSymbol);
+          if (rows?.length) {
+            map.set(symbol, rows);
+            continue;
+          }
         }
         // Fallback to Yahoo Finance
         const yahooSymbol = cleanSymbol + '.JK';
@@ -367,6 +413,16 @@ export async function fetchDatasahamHistoricalMap(
     } catch (error) {
       datasahamFailures++;
       console.error(`[Datasaham] [${processedCount}] ${cleanSymbol} - Error:`, error instanceof Error ? error.message : String(error));
+      // Fallback chain: RapidAPI (if configured and short lookback) -> Yahoo
+      if (hasRapidApiKey() && daysBack <= 400) {
+        const { fetchOHLCHistoricalMapForTickers } = await import('./ohlcDev');
+        const rapid = await fetchOHLCHistoricalMapForTickers([cleanSymbol], daysBack);
+        const rows = rapid.get(cleanSymbol);
+        if (rows?.length) {
+          map.set(symbol, rows);
+          continue;
+        }
+      }
       // Try Yahoo Finance as fallback
       const yahooSymbol = cleanSymbol + '.JK';
       const yahooData = await fetchYahooForSymbol(yahooSymbol, daysBack);
